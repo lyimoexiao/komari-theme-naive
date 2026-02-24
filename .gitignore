@@ -47,3 +47,6 @@ __screenshots__/
 AGENTS.md
 CLAUDE.md
 QWEN.md
+
+# Theme build output
+komari-theme-naive-build-*.zip
