@@ -515,43 +515,82 @@ export class KomariRpc {
     return this.client.call<VersionInfo>('rpc.getVersion')
   }
 
-  // ==================== 节点方法 ====================
+  // ==================== 通用方法 ====================
 
   /**
    * 获取所有节点信息
    */
   async getNodes(): Promise<Record<string, Client>> {
-    return this.client.call<Record<string, Client>>('client.getNodes')
+    return this.client.call<Record<string, Client>>('common:getNodes')
   }
 
   /**
    * 获取所有节点最新状态
    */
   async getNodesLatestStatus(): Promise<Record<string, NodeStatus>> {
-    return this.client.call<Record<string, NodeStatus>>('nodeStatus.getLatest')
+    return this.client.call<Record<string, NodeStatus>>('common:getNodesLatestStatus')
   }
 
   /**
    * 获取节点最近状态记录
    */
-  async getNodeRecentStatus(uuid: string, limit?: number): Promise<{ records: StatusRecord[] }> {
-    return this.client.call<{ records: StatusRecord[] }>('nodeStatus.getRecent', { uuid, limit })
+  async getNodeRecentStatus(uuid: string, limit?: number): Promise<{ count: number, records: StatusRecord[] }> {
+    return this.client.call<{ count: number, records: StatusRecord[] }>('common:getNodeRecentStatus', { uuid, limit })
+  }
+
+  /**
+   * 获取公开的站点信息
+   */
+  async getPublicInfo(): Promise<PublicInfo> {
+    return this.client.call<PublicInfo>('common:getPublicInfo')
+  }
+
+  /**
+   * 获取后端版本
+   */
+  async getBackendVersion(): Promise<VersionInfo> {
+    return this.client.call<VersionInfo>('common:getBackendVersion')
   }
 
   // ==================== 历史记录方法 ====================
 
   /**
+   * 获取历史记录（通用方法）
+   */
+  async getRecords(params: {
+    type: 'load' | 'ping'
+    uuid?: string
+    hours?: number
+    task_id?: number
+    load_type?: string
+    max_count?: number
+  }): Promise<unknown> {
+    return this.client.call('common:getRecords', params)
+  }
+
+  /**
    * 获取负载记录
    */
-  async getLoadRecords(uuid: string, hours?: number): Promise<{ records: StatusRecord[] }> {
-    return this.client.call<{ records: StatusRecord[] }>('records.getLoadRecords', { uuid, hours })
+  async getLoadRecords(uuid?: string, hours?: number, loadType?: string, maxCount?: number): Promise<{ records: StatusRecord[] }> {
+    return this.client.call<{ records: StatusRecord[] }>('common:getRecords', {
+      type: 'load',
+      uuid,
+      hours,
+      load_type: loadType,
+      max_count: maxCount,
+    })
   }
 
   /**
    * 获取 Ping 记录
    */
-  async getPingRecords(uuid: string, hours?: number): Promise<{ records: PingRecord[] }> {
-    return this.client.call<{ records: PingRecord[] }>('records.getPingRecords', { uuid, hours })
+  async getPingRecords(taskId?: number, hours?: number, maxCount?: number): Promise<{ records: PingRecord[] }> {
+    return this.client.call<{ records: PingRecord[] }>('common:getRecords', {
+      type: 'ping',
+      task_id: taskId,
+      hours,
+      max_count: maxCount,
+    })
   }
 
   /**
@@ -574,4 +613,14 @@ export function getSharedRpc(): KomariRpc {
     sharedRpc = new KomariRpc()
   }
   return sharedRpc
+}
+
+/**
+ * 重置共享实例
+ */
+export function resetSharedRpc(): void {
+  if (sharedRpc) {
+    sharedRpc.close()
+    sharedRpc = null
+  }
 }
