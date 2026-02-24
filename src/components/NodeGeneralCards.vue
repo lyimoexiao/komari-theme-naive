@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { NCard, NText } from 'naive-ui'
 import { computed, onUnmounted, ref } from 'vue'
 import { useNodesStore } from '@/stores/nodes'
 
@@ -75,7 +76,7 @@ onUnmounted(() => {
 
 <template>
   <div class="general-info p-4 flex flex-wrap gap-4">
-    <NCard class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
+    <NCard hoverable class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
       <div class="font-tcloud-number">
         <NText class="text-2xl font-bold m-0">
           {{ currentTime }}
@@ -86,7 +87,7 @@ onUnmounted(() => {
         当前时间
       </NText>
     </NCard>
-    <NCard class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
+    <NCard hoverable class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
       <div class="font-tcloud-number">
         <NText class="text-2xl font-bold m-0">
           {{ onlineNodeCount }}
@@ -100,7 +101,7 @@ onUnmounted(() => {
         在线节点
       </NText>
     </NCard>
-    <NCard class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
+    <NCard hoverable class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
       <div class="font-tcloud-number">
         <NText class="text-2xl font-bold m-0">
           {{ onlineRegionCount }}
@@ -111,16 +112,16 @@ onUnmounted(() => {
         点亮区域
       </NText>
     </NCard>
-    <NCard class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
+    <NCard hoverable class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
       <div class="font-tcloud-number">
         <div class="traffic-item text-xl flex flex-row gap-2 items-center">
-          <div class="i-icon-park-outline-up" />
+          <div class="i-icon-park-outline-upload" />
           <div class="traffic-item-value font-bold">
             {{ formatBytes(totalTraffic.up) }}
           </div>
         </div>
         <div class="traffic-item text-xl flex flex-row gap-2 items-center">
-          <div class="i-icon-park-outline-down" />
+          <div class="i-icon-park-outline-download" />
           <div class="traffic-item-value font-bold">
             {{ formatBytes(totalTraffic.down) }}
           </div>
@@ -131,7 +132,7 @@ onUnmounted(() => {
         流量总览
       </NText>
     </NCard>
-    <NCard class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
+    <NCard hoverable class="flex-1 min-h-32 min-w-48" content-class="flex flex-col justify-between h-full">
       <div class="font-tcloud-number">
         <div class="traffic-item text-xl flex flex-row gap-2 items-center">
           <div class="i-icon-park-outline-up" />

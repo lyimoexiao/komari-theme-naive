@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { NCard, NIcon, NProgress, NTag, NText } from 'naive-ui'
 import { computed } from 'vue'
+import { calcPercentage, formatBytes, formatBytesPerSecond, formatUptime, getStatus } from '@/utils/helper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
 import { getRegionCode, getRegionDisplayName } from '@/utils/regionHelper'
 
@@ -11,60 +12,6 @@ const props = defineProps({
   },
 })
 
-// 格式化字节为可读单位
-function formatBytes(bytes: number): string {
-  if (bytes === 0)
-    return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-  const k = 1024
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return `${(bytes / k ** i).toFixed(1)} ${units[i]}`
-}
-
-// 格式化字节速率为可读单位（带 /s）
-function formatBytesPerSecond(bytes: number): string {
-  return `${formatBytes(bytes)}/s`
-}
-
-// 格式化运行时间
-function formatUptime(seconds: number): string {
-  if (!seconds || seconds <= 0)
-    return '0 秒'
-
-  const days = Math.floor(seconds / 86400)
-  const hours = Math.floor((seconds % 86400) / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  const secs = Math.floor(seconds % 60)
-
-  const parts: string[] = []
-  if (days > 0)
-    parts.push(`${days} 天`)
-  if (hours > 0)
-    parts.push(`${hours} 小时`)
-  if (minutes > 0)
-    parts.push(`${minutes} 分钟`)
-  if (secs > 0 || parts.length === 0)
-    parts.push(`${secs} 秒`)
-
-  return parts.join(' ')
-}
-
-// 计算占用百分比
-function calcPercentage(used: number, total: number): number {
-  if (total === 0)
-    return 0
-  return (used / total) * 100
-}
-
-// 根据占用百分比返回状态
-function getStatus(percentage: number): 'success' | 'warning' | 'error' {
-  if (percentage < 60)
-    return 'success'
-  if (percentage < 80)
-    return 'warning'
-  return 'error'
-}
-
 const cpuStatus = computed(() => getStatus(props.node.cpu ?? 0))
 const memPercentage = computed(() => calcPercentage(props.node.ram ?? 0, props.node.mem_total ?? 0))
 const memStatus = computed(() => getStatus(memPercentage.value))
@@ -73,7 +20,7 @@ const diskStatus = computed(() => getStatus(diskPercentage.value))
 </script>
 
 <template>
-  <NCard class="w-full cursor-pointer">
+  <NCard hoverable class="w-full cursor-pointer">
     <template #header>
       <div class="flex gap-2 items-center">
         <NIcon>
