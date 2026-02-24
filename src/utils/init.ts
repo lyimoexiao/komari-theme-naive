@@ -15,8 +15,6 @@ interface InitConfig {
   wsReconnectInterval?: number
   /** WebSocket 最大重连次数（失败后回落 POST） */
   wsMaxReconnectAttempts?: number
-  /** 轮询间隔（毫秒） */
-  pollInterval?: number
   /** 后端健康检查超时（毫秒） */
   healthCheckTimeout?: number
   /** POST 模式连续失败次数阈值 */
@@ -26,7 +24,6 @@ interface InitConfig {
 const DEFAULT_CONFIG: Required<InitConfig> = {
   wsReconnectInterval: 3000,
   wsMaxReconnectAttempts: 5,
-  pollInterval: 1000,
   healthCheckTimeout: 5000,
   postFailureThreshold: 3,
 }
@@ -48,6 +45,19 @@ class InitManager {
     this.rpc = getSharedRpc()
     this.appStore = useAppStore()
     this.nodesStore = useNodesStore()
+  }
+
+  /**
+   * 获取轮询间隔（毫秒）
+   * 从 publicSettings.dataUpdateInterval 读取，默认 3 秒
+   */
+  private getPollInterval(): number {
+    const interval = this.appStore.publicSettings?.dataUpdateInterval
+    // 确保值在合理范围内（1-60秒）
+    if (interval && interval >= 1 && interval <= 60) {
+      return interval * 1000 // 转换为毫秒
+    }
+    return 3000 // 默认 3 秒
   }
 
   /**
@@ -279,7 +289,7 @@ class InitManager {
 
     this.pollTimer = setInterval(() => {
       this.poll()
-    }, this.config.pollInterval)
+    }, this.getPollInterval())
   }
 
   /**

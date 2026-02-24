@@ -39,6 +39,8 @@ export interface PublicSettings {
   sitename: string
   theme: string
   theme_settings?: Record<string, unknown> | null
+  /** 数据更新间隔（秒），主题配置项 */
+  dataUpdateInterval?: number
 }
 
 /** 版本信息 */
