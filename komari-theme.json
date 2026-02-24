@@ -1,0 +1,10 @@
+{
+  "name": "Komari NaiveUi",
+  "short": "KomariNaive",
+  "description": "A naive-ui theme for Komari",
+  "version": "1.0.0",
+  "author": "lyimoexiao",
+  "url": "https://github.com/lyimoexiao/komari-theme-naive",
+  "preview": "preview.png",
+  "configuration": {}
+}
