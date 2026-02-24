@@ -47,8 +47,6 @@ function handleButtonClick(action: string) {
       window.$modal.create({
         title: '登录',
         preset: 'dialog',
-        contentClass: 'w-80 pt-4',
-        class: 'w-fit!',
         showIcon: false,
         content: () => h(LoginDialog),
       })

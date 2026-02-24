@@ -99,10 +99,10 @@ function handleOAuth2Login() {
 </script>
 
 <template>
-  <div class="w-80">
+  <div class="w-full">
     <!-- 登录表单 -->
     <div v-if="!showOtpDialog" class="flex flex-col">
-      <NForm ref="formRef" :model="form" :rules="rules">
+      <NForm ref="formRef" :model="form" :rules="rules" class="w-full">
         <NFormItem label="用户名" path="username">
           <NInput v-model:value="form.username" placeholder="请输入用户名" :disabled="loading" />
         </NFormItem>
@@ -116,7 +116,7 @@ function handleOAuth2Login() {
           />
         </NFormItem>
       </NForm>
-      <NButton type="primary" :loading="loading" @click="handleLogin">
+      <NButton type="primary" :loading="loading" block @click="handleLogin">
         <template #icon>
           <div class="i-icon-park-outline-login" />
         </template>
@@ -125,7 +125,7 @@ function handleOAuth2Login() {
     </div>
 
     <!-- OTP 验证表单 -->
-    <div v-else class="flex flex-col gap-4 items-center">
+    <div v-else class="flex flex-col gap-4 w-full items-center overflow-x-auto">
       <div class="text-center">
         <div class="text-lg font-medium mb-2">
           两步验证
@@ -154,7 +154,7 @@ function handleOAuth2Login() {
     <template v-if="!showOtpDialog && appStore.publicSettings?.oauth_enable">
       <NDivider />
       <div class="flex flex-col">
-        <NButton @click="handleOAuth2Login">
+        <NButton block @click="handleOAuth2Login">
           <template #icon>
             <div class="i-icon-park-outline-outbound" />
           </template>
