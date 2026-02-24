@@ -1,6 +1,6 @@
 {
   "name": "Komari Naive",
-  "short": "KomariNaive",
+  "short": "naive",
   "description": "A naive-ui theme for Komari",
   "version": "1.0.0",
   "author": "lyimoexiao",
@@ -8,7 +8,7 @@
   "preview": "preview.png",
   "configuration": {
     "type": "managed",
-    "name": "KomariNaive 设置",
+    "name": "Naive 设置",
     "data": [
       { "name": "数据刷新设置", "type": "title" },
       { "key": "dataUpdateInterval", "name": "数据更新间隔", "type": "number", "default": 3, "help": "实时数据刷新间隔，单位：秒（建议 1-10 秒）" }

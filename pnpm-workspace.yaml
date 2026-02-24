@@ -23,6 +23,7 @@ catalog:
   '@vue/eslint-config-typescript': ^14.6.0
   '@vue/tsconfig': ^0.8.1
   '@vueuse/core': ^14.2.1
+  archiver: ^7.0.1
   echarts: ^6.0.0
   eslint: ^9.39.2
   eslint-plugin-format: ^1.4.0

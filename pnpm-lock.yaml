@@ -54,6 +54,9 @@ catalogs:
     '@vueuse/core':
       specifier: ^14.2.1
       version: 14.2.1
+    archiver:
+      specifier: ^7.0.1
+      version: 7.0.1
     echarts:
       specifier: ^6.0.0
       version: 6.0.0
@@ -195,7 +198,7 @@ importers:
         specifier: 'catalog:'
         version: 14.2.1(vue@3.5.28(typescript@5.9.3))
       archiver:
-        specifier: ^7.0.1
+        specifier: 'catalog:'
         version: 7.0.1
       eslint:
         specifier: 'catalog:'

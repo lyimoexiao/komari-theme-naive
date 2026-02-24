@@ -44,7 +44,7 @@
     "@vue/eslint-config-typescript": "catalog:",
     "@vue/tsconfig": "catalog:",
     "@vueuse/core": "catalog:",
-    "archiver": "^7.0.1",
+    "archiver": "catalog:",
     "eslint": "catalog:",
     "eslint-plugin-format": "catalog:",
     "eslint-plugin-oxlint": "catalog:",

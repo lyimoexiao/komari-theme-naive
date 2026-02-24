@@ -38,6 +38,7 @@ function getCommitHash(): string {
  * 生成符合 Komari 标准的主题包结构：
  * theme.zip
  * ├── komari-theme.json    # 主题配置文件
+ * ├── preview.png          # 主题预览图
  * └── dist/                # 构建输出目录
  *     ├── index.html
  *     └── ...
@@ -51,6 +52,7 @@ function komariThemeZip(): Plugin {
       const zipFileName = `komari-theme-naive-build-${commitHash}.zip`
       const distDir = resolve(__dirname, 'dist')
       const themeJsonPath = resolve(__dirname, 'komari-theme.json')
+      const previewPath = resolve(__dirname, 'docs/preview.png')
       const outputPath = resolve(__dirname, zipFileName)
 
       if (!existsSync(distDir)) {
@@ -77,6 +79,10 @@ function komariThemeZip(): Plugin {
 
         if (existsSync(themeJsonPath)) {
           archive.file(themeJsonPath, { name: 'komari-theme.json' })
+        }
+
+        if (existsSync(previewPath)) {
+          archive.file(previewPath, { name: 'preview.png' })
         }
 
         archive.directory(distDir, 'dist')
