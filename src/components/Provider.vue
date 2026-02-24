@@ -55,7 +55,7 @@ const NaiveProviderContent = defineComponent({
 
 const themeOverride: GlobalThemeOverrides = {
   common: {
-    fontFamily: 'MiSans, sans-serif',
+    fontFamily: 'MiSans VF, sans-serif',
   },
 }
 </script>
