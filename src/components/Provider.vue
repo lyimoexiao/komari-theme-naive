@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { GlobalTheme } from 'naive-ui'
+import type { GlobalTheme, GlobalThemeOverrides } from 'naive-ui'
 import {
   darkTheme,
   lightTheme,
@@ -52,10 +52,16 @@ const NaiveProviderContent = defineComponent({
     return h('div', { className: 'naive-tools' })
   },
 })
+
+const themeOverride: GlobalThemeOverrides = {
+  common: {
+    fontFamily: 'MiSans, sans-serif',
+  },
+}
 </script>
 
 <template>
-  <NConfigProvider :theme="theme">
+  <NConfigProvider :theme="theme" :theme-overrides="themeOverride">
     <NBackTop :visibility-height="80" />
     <NGlobalStyle />
     <NLoadingBarProvider>
