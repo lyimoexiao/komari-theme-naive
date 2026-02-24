@@ -8,7 +8,7 @@ type NodeViewMode = 'grid' | 'table'
 
 const useAppStore = defineStore('app', () => {
   const loading = ref<boolean>(true)
-  const themeMode = ref<ThemeMode>('auto')
+  const themeMode = ref<ThemeMode>((localStorage.getItem('themeMode') as ThemeMode) || 'auto')
   const lang = ref<Lang>('zh-CN')
   const publicSettings = ref<PublicSettings>()
   const userInfo = ref<MeInfo>()
@@ -16,6 +16,11 @@ const useAppStore = defineStore('app', () => {
   const nodeViewMode = ref<NodeViewMode>((localStorage.getItem('nodeViewMode') as NodeViewMode) || 'grid')
   const isLoggedIn = ref<boolean>(false)
   const connectionError = ref<boolean>(false)
+
+  // 监听主题模式变化，自动保存到 localStorage
+  watch(themeMode, (newValue) => {
+    localStorage.setItem('themeMode', newValue)
+  })
 
   // 监听分组选择变化，自动保存到 localStorage
   watch(nodeSelectedGroup, (newValue) => {
