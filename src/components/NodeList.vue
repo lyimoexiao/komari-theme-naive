@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { NodeData } from '@/stores/nodes'
 import { NBadge, NButton, NIcon, NList, NListItem, NModal, NProgress, NText, NTooltip, useThemeVars } from 'naive-ui'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import PingChart from '@/components/PingChart.vue'
 import TrafficProgress from '@/components/TrafficProgress.vue'
-import { formatBytes, formatBytesPerSecond, formatUptime, getStatus } from '@/utils/helper'
+import { useAppStore } from '@/stores/app'
+import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatUptimeWithFormat, getStatus } from '@/utils/helper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
 import { getRegionCode, getRegionDisplayName } from '@/utils/regionHelper'
 
@@ -16,12 +17,33 @@ const emit = defineEmits<{
   click: [node: NodeData]
 }>()
 
+const appStore = useAppStore()
+
 // 获取 Naive UI 主题变量
 const themeVars = useThemeVars()
 
 // 延迟图表弹窗状态
 const showPingChart = ref(false)
 const selectedNode = ref<NodeData | null>(null)
+
+// 列可见性计算
+const columns = computed(() => appStore.listViewColumns)
+const showColumn = (col: string) => columns.value.includes(col as typeof columns.value[number])
+
+// 格式化函数
+const formatBytes = (bytes: number) => formatBytesWithConfig(bytes, appStore.byteDecimals)
+const formatBytesPerSecond = (bytes: number) => formatBytesPerSecondWithConfig(bytes, appStore.byteDecimals)
+const formatUptime = (seconds: number) => formatUptimeWithFormat(seconds, appStore.uptimeFormat)
+
+// 动态生成 grid 样式，使用配置的列宽度
+const gridStyle = computed(() => {
+  const visibleColumns = columns.value
+  const columnWidths = appStore.listColumnWidths
+  const templateColumns = visibleColumns.map(col => columnWidths[col] || 'auto')
+  return {
+    gridTemplateColumns: templateColumns.join(' '),
+  }
+})
 
 // 计算国旗图标路径
 function getFlagSrc(region: string): string {
@@ -94,50 +116,50 @@ function getTrafficUsed(node: NodeData): number {
 
 <template>
   <div class="node-list-wrapper">
-    <NList hoverable clickable bordered class="min-w-fit w-full">
+    <NList hoverable clickable bordered class="min-w-fit w-full" :class="{ 'node-list--relaxed': appStore.listRelaxedStyle }">
       <template #header>
-        <div class="node-list-header">
-          <div class="node-list-header__status">
+        <div class="node-list-header" :style="gridStyle">
+          <div v-if="showColumn('status')" class="node-list-header__status">
             <NText :depth="3" class="text-xs">
               状态
             </NText>
           </div>
-          <div class="node-list-header__region">
+          <div v-if="showColumn('region')" class="node-list-header__region">
             <NText :depth="3" class="text-xs">
               地区
             </NText>
           </div>
-          <div class="node-list-header__name">
+          <div v-if="showColumn('name')" class="node-list-header__name">
             <NText :depth="3" class="text-xs">
               节点
             </NText>
           </div>
-          <div class="node-list-header__uptime">
+          <div v-if="showColumn('uptime')" class="node-list-header__uptime">
             <NText :depth="3" class="text-xs">
               运行时间
             </NText>
           </div>
-          <div class="node-list-header__os">
+          <div v-if="showColumn('os')" class="node-list-header__os">
             <NText :depth="3" class="text-xs">
               系统
             </NText>
           </div>
-          <div class="node-list-header__cpu">
+          <div v-if="showColumn('cpu')" class="node-list-header__cpu">
             <NText :depth="3" class="text-xs">
               CPU
             </NText>
           </div>
-          <div class="node-list-header__mem">
+          <div v-if="showColumn('mem')" class="node-list-header__mem">
             <NText :depth="3" class="text-xs">
               内存
             </NText>
           </div>
-          <div class="node-list-header__disk">
+          <div v-if="showColumn('disk')" class="node-list-header__disk">
             <NText :depth="3" class="text-xs">
               硬盘
             </NText>
           </div>
-          <div class="node-list-header__traffic">
+          <div v-if="showColumn('traffic')" class="node-list-header__traffic">
             <NText :depth="3" class="text-xs">
               流量
             </NText>
@@ -145,9 +167,9 @@ function getTrafficUsed(node: NodeData): number {
         </div>
       </template>
       <NListItem v-for="node in props.nodes" :key="node.uuid" :class="{ 'opacity-50 pointer-events-none': !node.online }" @click="handleClick(node)">
-        <div class="node-list-item">
+        <div class="node-list-item" :style="gridStyle">
           <!-- 在线状态指示器 -->
-          <div class="node-list-item__status">
+          <div v-if="showColumn('status')" class="node-list-item__status">
             <div class="flex gap-1 items-center">
               <NTooltip>
                 <template #trigger>
@@ -170,28 +192,28 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 国旗 -->
-          <div class="node-list-item__region">
+          <div v-if="showColumn('region')" class="node-list-item__region">
             <NIcon size="20">
               <img :src="getFlagSrc(node.region)" :alt="getRegionDisplayName(node.region)" class="rounded-sm">
             </NIcon>
           </div>
 
           <!-- 节点名称 -->
-          <div class="node-list-item__name">
+          <div v-if="showColumn('name')" class="node-list-item__name">
             <NText class="text-sm font-semibold">
               {{ node.name }}
             </NText>
           </div>
 
           <!-- 运行时间 -->
-          <div class="node-list-item__uptime">
+          <div v-if="showColumn('uptime')" class="node-list-item__uptime">
             <NText :depth="3" class="text-xs">
               {{ formatUptime(node.uptime ?? 0) }}
             </NText>
           </div>
 
           <!-- 操作系统 -->
-          <div class="node-list-item__os">
+          <div v-if="showColumn('os')" class="node-list-item__os">
             <div class="flex gap-1 items-center">
               <NIcon size="16">
                 <img :src="getOSImage(node.os)" :alt="getOSName(node.os)">
@@ -203,7 +225,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- CPU -->
-          <div class="node-list-item__cpu">
+          <div v-if="showColumn('cpu')" class="node-list-item__cpu">
             <div class="flex flex-col gap-0.5">
               <div class="text-xs flex gap-1 items-center">
                 <NText>{{ (node.cpu ?? 0).toFixed(1) }}%</NText>
@@ -213,7 +235,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 内存 -->
-          <div class="node-list-item__mem">
+          <div v-if="showColumn('mem')" class="node-list-item__mem">
             <div class="flex flex-col gap-0.5">
               <div class="text-xs flex gap-1 items-center">
                 <NText>{{ ((node.ram ?? 0) / (node.mem_total || 1) * 100).toFixed(1) }}%</NText>
@@ -226,7 +248,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 硬盘 -->
-          <div class="node-list-item__disk">
+          <div v-if="showColumn('disk')" class="node-list-item__disk">
             <div class="flex flex-col gap-0.5">
               <div class="text-xs flex gap-1 items-center">
                 <NText>{{ ((node.disk ?? 0) / (node.disk_total || 1) * 100).toFixed(1) }}%</NText>
@@ -239,7 +261,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 流量 -->
-          <div class="node-list-item__traffic">
+          <div v-if="showColumn('traffic')" class="node-list-item__traffic">
             <div class="traffic-cell">
               <!-- 有流量限制时显示进度条版式 -->
               <template v-if="showTrafficProgress(node)">
@@ -329,7 +351,6 @@ function getTrafficUsed(node: NodeData): number {
 .node-list-header,
 .node-list-item {
   display: grid;
-  grid-template-columns: 76px 32px minmax(200px, 1fr) minmax(180px, 0.6fr) 120px 180px 180px 180px minmax(180px, 0.5fr);
   align-items: center;
   gap: 12px;
 }
@@ -395,5 +416,23 @@ function getTrafficUsed(node: NodeData): number {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+/* 宽松样式 */
+.node-list--relaxed :deep(.n-list-item) {
+  padding: 14px 16px !important;
+}
+
+.node-list--relaxed .node-list-header {
+  padding: 12px 16px;
+  gap: 24px;
+}
+
+.node-list--relaxed .node-list-item {
+  gap: 24px;
+}
+
+.node-list--relaxed .traffic-cell {
+  min-height: 46px;
 }
 </style>

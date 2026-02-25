@@ -10,6 +10,17 @@ const appStore = useAppStore()
 
 const siteFavicon = ref('/favicon.ico')
 
+// 计算页面容器的样式
+const containerStyle = computed(() => {
+  if (appStore.fullWidth) {
+    return {}
+  }
+  return {
+    maxWidth: appStore.maxPageWidth,
+    marginInline: 'auto',
+  }
+})
+
 const actionButtons = computed(() => {
   const buttons = [
     {
@@ -64,7 +75,7 @@ function handleButtonClick(action: string) {
 
 <template>
   <div class="bg-$n-color shadow-sm top-0 position-sticky z-10 backdrop-blur-md">
-    <div class="mx-auto px-4 flex-between h-16 max-w-[1800px]">
+    <div class="px-4 flex-between h-16" :style="containerStyle">
       <NFlex class="flex-center cursor-pointer" @click="router.push('/')">
         <NAvatar :src="siteFavicon" round />
         <NH3 class="m-0">

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { tryOnMounted, tryOnUnmounted } from '@vueuse/core'
+import { computed } from 'vue'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import LoadingCover from './components/LoadingCover.vue'
@@ -8,6 +9,17 @@ import { useAppStore } from './stores/app'
 import { destroyInitManager, initApp } from './utils/init'
 
 const appStore = useAppStore()
+
+// 计算页面容器的样式
+const pageContainerStyle = computed(() => {
+  if (appStore.fullWidth) {
+    return {}
+  }
+  return {
+    maxWidth: appStore.maxPageWidth,
+    marginInline: 'auto',
+  }
+})
 
 // 使用 VueUse 的 tryOnMounted，在组件卸载后自动忽略异步操作结果
 tryOnMounted(async () => {
@@ -35,7 +47,7 @@ tryOnUnmounted(() => {
 
     <Header />
     <main v-if="!appStore.loading" class="min-h-screen overflow-hidden">
-      <div class="mx-auto max-w-[1800px]">
+      <div :style="pageContainerStyle">
         <RouterView v-slot="{ Component }">
           <Transition
             enter-active-class="transition-all duration-200 ease-out"

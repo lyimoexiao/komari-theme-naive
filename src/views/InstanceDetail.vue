@@ -2,8 +2,9 @@
 import { NButton, NCard, NDivider, NEmpty, NIcon, NTabPane, NTabs, NTag, NText } from 'naive-ui'
 import { computed, defineAsyncComponent, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
-import { formatBytes, formatBytesPerSecond, formatDateTime, formatUptime } from '@/utils/helper'
+import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, formatUptimeWithFormat } from '@/utils/helper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
 import { getRegionCode, getRegionDisplayName } from '@/utils/regionHelper'
 
@@ -14,7 +15,13 @@ const PingChart = defineAsyncComponent(() => import('@/components/PingChart.vue'
 const route = useRoute()
 const router = useRouter()
 
+const appStore = useAppStore()
 const nodesStore = useNodesStore()
+
+// 格式化函数
+const formatBytes = (bytes: number) => formatBytesWithConfig(bytes, appStore.byteDecimals)
+const formatBytesPerSecond = (bytes: number) => formatBytesPerSecondWithConfig(bytes, appStore.byteDecimals)
+const formatUptime = (seconds: number) => formatUptimeWithFormat(seconds, appStore.uptimeFormat)
 
 // 视图切换：load 或 ping
 const chartView = ref<'load' | 'ping'>('load')

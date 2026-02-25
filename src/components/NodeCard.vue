@@ -4,7 +4,8 @@ import { NButton, NCard, NEllipsis, NIcon, NModal, NProgress, NTag, NText, NTool
 import { computed, ref } from 'vue'
 import PingChart from '@/components/PingChart.vue'
 import TrafficProgress from '@/components/TrafficProgress.vue'
-import { formatBytes, formatBytesPerSecond, formatUptime, getStatus } from '@/utils/helper'
+import { useAppStore } from '@/stores/app'
+import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatUptimeWithFormat, getStatus } from '@/utils/helper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
 import { getRegionCode, getRegionDisplayName } from '@/utils/regionHelper'
 
@@ -16,11 +17,18 @@ const emit = defineEmits<{
   click: []
 }>()
 
+const appStore = useAppStore()
+
 // 获取 Naive UI 主题变量
 const themeVars = useThemeVars()
 
 // 延迟图表弹窗状态
 const showPingChart = ref(false)
+
+// 格式化函数
+const formatBytes = (bytes: number) => formatBytesWithConfig(bytes, appStore.byteDecimals)
+const formatBytesPerSecond = (bytes: number) => formatBytesPerSecondWithConfig(bytes, appStore.byteDecimals)
+const formatUptime = (seconds: number) => formatUptimeWithFormat(seconds, appStore.uptimeFormat)
 
 // 计算统计信息
 const cpuStatus = computed(() => getStatus(props.node.cpu ?? 0))
@@ -87,7 +95,7 @@ const trafficUsed = computed(() => {
   <div>
     <NCard
       hoverable
-      class="node-card min-w-72 w-full cursor-pointer transition-all duration-200" :class="[
+      class="node-card w-full cursor-pointer transition-all duration-200" :class="[
         props.node.online ? 'hover:border-primary' : 'opacity-50 pointer-events-none',
       ]"
       @click="emit('click')"
