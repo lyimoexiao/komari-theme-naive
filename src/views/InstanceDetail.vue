@@ -53,7 +53,7 @@ const storageInfo = computed<InfoItem[]>(() => [
 
 /** 网络信息 */
 const networkInfo = computed<InfoItem[]>(() => [
-  { label: '总流量', value: `↑ ${formatBytes(data.value?.net_total_up ?? 0)} ｜ ↓ ${formatBytes(data.value?.net_total_down ?? 0)}`, icon: 'i-icon-park-outline-data-server' },
+  { label: '总流量', value: `↑ ${formatBytes(data.value?.net_total_up ?? 0)} ｜ ↓ ${formatBytes(data.value?.net_total_down ?? 0)}`, icon: 'i-icon-park-outline-transfer-data' },
   { label: '网络速率', value: `↑ ${formatBytesPerSecond(data.value?.net_out ?? 0)} ｜ ↓ ${formatBytesPerSecond(data.value?.net_in ?? 0)}`, icon: 'i-icon-park-outline-dashboard-one' },
 ])
 </script>
