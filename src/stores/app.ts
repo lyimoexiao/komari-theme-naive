@@ -16,16 +16,16 @@ const useAppStore = defineStore('app', () => {
   const isLoggedIn = ref<boolean>(false)
   const connectionError = ref<boolean>(false)
 
-  // 从 localStorage 读取视图模式，若无则从主题配置获取默认值
-  const getDefaultViewMode = (): NodeViewMode => {
+  // 从 localStorage 读取视图模式，若无则为 undefined，等待主题配置加载后设置
+  const getStoredViewMode = (): NodeViewMode | undefined => {
     const stored = localStorage.getItem('nodeViewMode')
     if (stored === 'card' || stored === 'list') {
       return stored
     }
-    return 'card'
+    return undefined
   }
 
-  const nodeViewMode = ref<NodeViewMode>(getDefaultViewMode())
+  const nodeViewMode = ref<NodeViewMode>(getStoredViewMode() || 'card')
 
   // 计算属性：从主题配置获取默认视图模式
   const defaultViewMode = computed<NodeViewMode>(() => {
@@ -38,6 +38,13 @@ const useAppStore = defineStore('app', () => {
     }
     return 'card'
   })
+
+  // 当 publicSettings 加载后，如果 localStorage 没有保存过视图模式，则使用主题配置的默认值
+  watch(publicSettings, (settings) => {
+    if (settings && !getStoredViewMode()) {
+      nodeViewMode.value = defaultViewMode.value
+    }
+  }, { immediate: true })
 
   // 监听主题模式变化，自动保存到 localStorage
   watch(themeMode, (newValue) => {
