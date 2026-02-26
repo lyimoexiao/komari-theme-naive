@@ -2,6 +2,7 @@
 import type { RecordFormat } from '@/utils/recordHelper'
 import type { StatusRecord } from '@/utils/rpc'
 import { useIntervalFn } from '@vueuse/core'
+import dayjs from 'dayjs'
 import { NButton, NCard, NEmpty, NSpin, NText } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
@@ -22,11 +23,12 @@ const nodesStore = useNodesStore()
 // 从 publicSettings 获取记录保留时间
 const maxRecordPreserveTime = computed(() => appStore.publicSettings?.record_preserve_time || 720)
 
-// 从 publicSettings 获取数据更新间隔（秒），默认 3 秒
+// 从 publicSettings.theme_settings 获取数据更新间隔（秒），默认 3 秒
 const dataUpdateInterval = computed(() => {
-  const interval = appStore.publicSettings?.dataUpdateInterval
+  const settings = appStore.publicSettings?.theme_settings
+  const interval = settings?.dataUpdateInterval
   // 确保值在合理范围内（1-60秒）
-  if (interval && interval >= 1 && interval <= 60) {
+  if (typeof interval === 'number' && interval >= 1 && interval <= 60) {
     return interval * 1000 // 转换为毫秒
   }
   return 3000 // 默认 3 秒
@@ -195,7 +197,7 @@ async function fetchRecentData() {
   try {
     const result = await rpc.getNodeRecentStatus(props.uuid)
     const records = result?.records || []
-    records.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+    records.sort((a, b) => dayjs(a.time).valueOf() - dayjs(b.time).valueOf())
     const maxLength = 150
     remoteData.value = records.slice(-maxLength)
   }
@@ -231,7 +233,7 @@ async function fetchHistoryData() {
 
     // 按时间排序
     records.sort((a: StatusRecord, b: StatusRecord) =>
-      new Date(a.time).getTime() - new Date(b.time).getTime(),
+      dayjs(a.time).valueOf() - dayjs(b.time).valueOf(),
     )
 
     remoteData.value = records
@@ -297,19 +299,19 @@ const latestStatus = computed(() => {
 // ==================== 工具函数 ====================
 
 function formatTime(time: string, showDate: boolean): string {
-  const date = new Date(time)
+  const date = dayjs(time)
   if (showDate) {
-    return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    return date.format('M/D HH:mm')
   }
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  return date.format('HH:mm')
 }
 
 function formatTimeForTooltip(time: string, hours: number): string {
-  const date = new Date(time)
+  const date = dayjs(time)
   if (hours < 24) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    return date.format('HH:mm:ss')
   }
-  return date.toLocaleString([], { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  return date.format('MM/DD HH:mm')
 }
 
 const showDateInAxis = computed(() => (selectedHours.value || 1) >= 24)

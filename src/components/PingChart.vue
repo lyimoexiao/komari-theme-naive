@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import { NButton, NEmpty, NSpin, NSwitch, NTooltip } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
@@ -158,7 +159,7 @@ async function fetchRecords() {
     })
 
     const records = result?.records || []
-    records.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime())
+    records.sort((a, b) => dayjs(a.time).valueOf() - dayjs(b.time).valueOf())
 
     remoteData.value = records
     tasks.value = result?.tasks || []
@@ -200,7 +201,7 @@ const mergedData = computed(() => {
   const anchors: number[] = []
 
   for (const rec of data) {
-    const ts = new Date(rec.time).getTime()
+    const ts = dayjs(rec.time).valueOf()
     let anchor: number | null = null
 
     for (const a of anchors) {
@@ -212,7 +213,7 @@ const mergedData = computed(() => {
 
     const useTs = anchor ?? ts
     if (!grouped.has(useTs)) {
-      grouped.set(useTs, { time: new Date(useTs).toISOString() })
+      grouped.set(useTs, { time: dayjs(useTs).toISOString() })
       if (anchor === null) {
         anchors.push(useTs)
       }
@@ -223,12 +224,12 @@ const mergedData = computed(() => {
   }
 
   const merged = Array.from(grouped.values()).sort(
-    (a, b) => new Date(a.time as string).getTime() - new Date(b.time as string).getTime(),
+    (a, b) => dayjs(a.time as string).valueOf() - dayjs(b.time as string).valueOf(),
   )
 
   const hours = selectedHours.value
   const lastItem = merged[merged.length - 1]
-  const lastTs = lastItem ? new Date(lastItem.time as string).getTime() : Date.now()
+  const lastTs = lastItem ? dayjs(lastItem.time as string).valueOf() : dayjs().valueOf()
   const fromTs = lastTs - hours * 3600_000
 
   let startIdx = 0
@@ -236,7 +237,7 @@ const mergedData = computed(() => {
     const item = merged[i]
     if (!item)
       continue
-    const ts = new Date(item.time as string).getTime()
+    const ts = dayjs(item.time as string).valueOf()
     if (ts >= fromTs) {
       startIdx = Math.max(0, i - 1)
       break
@@ -271,19 +272,19 @@ const chartData = computed(() => {
 // ==================== 工具函数 ====================
 
 function formatTime(time: string, showDate: boolean): string {
-  const date = new Date(time)
+  const date = dayjs(time)
   if (showDate) {
-    return `${date.getMonth() + 1}/${date.getDate()} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    return date.format('M/D HH:mm')
   }
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+  return date.format('HH:mm')
 }
 
 function formatTimeForTooltip(time: string, hours: number): string {
-  const date = new Date(time)
+  const date = dayjs(time)
   if (hours < 24) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+    return date.format('HH:mm:ss')
   }
-  return date.toLocaleString([], { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+  return date.format('MM/DD HH:mm')
 }
 
 const showDateInAxis = computed(() => selectedHours.value >= 24)

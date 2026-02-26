@@ -3,6 +3,8 @@
  * 参考 React 版本的 RecordHelper.tsx 实现
  */
 
+import dayjs from 'dayjs'
+
 /** 负载记录格式 */
 export interface RecordFormat {
   client: string
@@ -87,7 +89,7 @@ export function fillMissingTimePoints<T extends { time?: string, updated_at?: st
     return []
 
   const getTime = (item: T) =>
-    new Date(item.time ?? item.updated_at ?? '').getTime()
+    dayjs(item.time ?? item.updated_at ?? '').valueOf()
 
   // 预计算时间戳，避免重复解析
   const timedData = data.map(item => ({ item, timeMs: getTime(item) }))
@@ -142,11 +144,11 @@ export function fillMissingTimePoints<T extends { time?: string, updated_at?: st
 
     if (found) {
       // 找到则使用，但对齐时间到网格
-      return { ...found, time: new Date(t).toISOString() }
+      return { ...found, time: dayjs(t).toISOString() }
     }
 
     // 未找到则插入空值模板
-    return { ...nullTemplate, time: new Date(t).toISOString() } as T
+    return { ...nullTemplate, time: dayjs(t).toISOString() } as T
   })
 
   return filled
@@ -177,7 +179,7 @@ export function interpolateNullsLinear(
     return rows
 
   const times = rows.map(r =>
-    new Date(r.time ?? r.updated_at ?? '').getTime(),
+    dayjs(r.time ?? r.updated_at ?? '').valueOf(),
   )
   const out: AnyRecord[] = rows.map(r => ({ ...r }))
 

@@ -49,12 +49,13 @@ class InitManager {
 
   /**
    * 获取轮询间隔（毫秒）
-   * 从 publicSettings.dataUpdateInterval 读取，默认 3 秒
+   * 从 publicSettings.theme_settings.dataUpdateInterval 读取，默认 3 秒
    */
   private getPollInterval(): number {
-    const interval = this.appStore.publicSettings?.dataUpdateInterval
+    const settings = this.appStore.publicSettings?.theme_settings
+    const interval = settings?.dataUpdateInterval
     // 确保值在合理范围内（1-60秒）
-    if (interval && interval >= 1 && interval <= 60) {
+    if (typeof interval === 'number' && interval >= 1 && interval <= 60) {
       return interval * 1000 // 转换为毫秒
     }
     return 3000 // 默认 3 秒

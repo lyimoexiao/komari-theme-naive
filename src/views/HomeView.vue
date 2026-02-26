@@ -155,7 +155,7 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
         <NTabs v-if="showGroupTabs" v-model:value="appStore.nodeSelectedGroup" animated>
           <NTabPane v-for="group in groups" :key="group.name" :tab="group.tab" :name="group.name">
             <!-- Card 视图 -->
-            <div v-if="nodeList.length !== 0 && appStore.nodeViewMode === 'card'" class="gap-4 grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))]">
+            <div v-if="nodeList.length !== 0 && appStore.nodeViewMode === 'card'" class="gap-4 grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(340px,1fr))]">
               <NodeCard v-for="node in nodeList" :key="node.uuid" :node="node" @click="handleNodeClick(node)" />
             </div>
             <!-- List 视图 -->
@@ -169,7 +169,7 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
         <!-- 无分组时直接显示节点列表 -->
         <template v-else>
           <!-- Card 视图 -->
-          <div v-if="nodeList.length !== 0 && appStore.nodeViewMode === 'card'" class="gap-4 grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))]">
+          <div v-if="nodeList.length !== 0 && appStore.nodeViewMode === 'card'" class="gap-4 grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(340px,1fr))]">
             <NodeCard v-for="node in nodeList" :key="node.uuid" :node="node" @click="handleNodeClick(node)" />
           </div>
           <!-- List 视图 -->

@@ -1,3 +1,5 @@
+import dayjs from 'dayjs'
+
 /** 字节单位常量 */
 const BYTE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'] as const
 
@@ -217,15 +219,10 @@ export function formatDateTime(timestamp: string | Date | undefined): string {
   if (!timestamp)
     return '-'
 
-  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp
+  const date = dayjs(timestamp)
 
-  if (Number.isNaN(date.getTime()))
+  if (!date.isValid())
     return '-'
 
-  // 使用 toISOString 的日期部分和手动格式化的时间部分
-  const iso = date.toISOString()
-  const datePart = iso.slice(0, 10)
-  const timePart = iso.slice(11, 19)
-
-  return `${datePart} ${timePart}`
+  return date.format('YYYY-MM-DD HH:mm:ss')
 }
