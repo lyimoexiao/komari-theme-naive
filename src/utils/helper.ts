@@ -142,9 +142,9 @@ export function formatUptime(seconds: number): string {
  * 格式化运行时间（支持自定义精度）
  * @param seconds 秒数
  * @param format 精度格式：'day' | 'hour' | 'minute' | 'second'
- * - 'day': 只显示天（如 "2 天"）
- * - 'hour': 显示天和小时（如 "2 天 3 小时"）
- * - 'minute': 显示天、小时、分钟（如 "2 天 3 小时 15 分钟"）
+ * - 'day': 只显示天（如 "2 天"），不满一天时显示"不足 1 天"
+ * - 'hour': 显示天和小时（如 "2 天 3 小时"），不满一小时时显示"不足 1 小时"
+ * - 'minute': 显示天、小时、分钟（如 "2 天 3 小时 15 分钟"），不满一分钟时显示"不足 1 分钟"
  * - 'second': 显示天、小时、分钟、秒（如 "2 天 3 小时 15 分钟 30 秒"）
  * @returns 格式化后的字符串
  */
@@ -152,31 +152,42 @@ export function formatUptimeWithFormat(seconds: number, format: UptimeFormat = '
   if (!seconds || seconds <= 0)
     return '0 秒'
 
-  // 根据格式确定要显示的最大单位数量（从天开始）
-  const formatMaxUnitsMap: Record<UptimeFormat, number> = {
-    day: 1, // 只显示 1 个单位：天
-    hour: 2, // 显示 2 个单位：天、小时
-    minute: 3, // 显示 3 个单位：天、小时、分钟
-    second: 4, // 显示 4 个单位：天、小时、分钟、秒
+  // 根据格式确定最大单位索引（从天开始）
+  const formatMaxUnitIndexMap: Record<UptimeFormat, number> = {
+    day: 0, // 只到天
+    hour: 1, // 到小时
+    minute: 2, // 到分钟
+    second: 3, // 到秒
   }
 
-  const maxUnits = formatMaxUnitsMap[format]
+  const maxUnitIndex = formatMaxUnitIndexMap[format]
   const parts: string[] = []
   let remaining = seconds
 
-  for (const { value, label } of TIME_UNITS) {
+  for (let i = 0; i < TIME_UNITS.length; i++) {
+    const unit = TIME_UNITS[i]
+    if (!unit)
+      continue
+    const { value, label } = unit
     const amount = Math.floor(remaining / value)
     if (amount > 0) {
       parts.push(`${amount} ${label}`)
       remaining %= value
     }
-    // 达到最大单位数量时停止
-    if (parts.length >= maxUnits) {
+    // 达到最大单位索引时停止
+    if (i >= maxUnitIndex) {
       break
     }
   }
 
-  return parts.length > 0 ? parts.join(' ') : '0 秒'
+  // 如果没有任何单位有值，显示"不足 1 X"
+  if (parts.length === 0) {
+    const fallbackUnit = TIME_UNITS[maxUnitIndex]
+    const fallbackLabel = fallbackUnit?.label ?? '秒'
+    return `不足 1 ${fallbackLabel}`
+  }
+
+  return parts.join(' ')
 }
 
 /**
