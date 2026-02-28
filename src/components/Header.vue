@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { NAvatar, NButton, NFlex, NH3, NPopover } from 'naive-ui'
-import { computed, h, ref } from 'vue'
+import { computed, h, inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import LoginDialog from './LoginDialog.vue'
 
 const router = useRouter()
 const appStore = useAppStore()
+
+// 从 Provider 注入滚动状态
+const isScrolled = inject<ReturnType<typeof ref<boolean>>>('isScrolled', ref(false))
 
 const siteFavicon = ref('/favicon.ico')
 
@@ -74,7 +77,7 @@ function handleButtonClick(action: string) {
 </script>
 
 <template>
-  <div class="bg-$n-color shadow-sm top-0 position-sticky z-10 backdrop-blur-md">
+  <div class="transition-all duration-200 top-0 position-sticky z-10" :class="isScrolled ? 'bg-$n-color shadow-sm backdrop-blur-md' : 'bg-transparent'">
     <div class="px-4 flex-between h-16" :style="containerStyle">
       <NFlex class="flex-center cursor-pointer" @click="router.push('/')">
         <NAvatar :src="siteFavicon" round />

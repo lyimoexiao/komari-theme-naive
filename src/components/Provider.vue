@@ -22,10 +22,16 @@ import {
   zhCN,
 } from 'naive-ui'
 
-import { computed, defineComponent, h, watch } from 'vue'
+import { computed, defineComponent, h, provide, ref, watch } from 'vue'
 import { useAppStore } from '@/stores/app'
 
 const appStore = useAppStore()
+
+// 滚动状态：是否显示返回顶部按钮（即页面已滚动）
+const isScrolled = ref(false)
+
+// 提供给子组件使用
+provide('isScrolled', isScrolled)
 
 // 直接使用 store 中的 isDark computed
 const isDark = computed(() => appStore.isDark)
@@ -121,7 +127,7 @@ watch(
 
 <template>
   <NConfigProvider :theme="theme" :theme-overrides="themeOverride" :locale="locale" :date-locale="dateLocale">
-    <NBackTop :visibility-height="80" />
+    <NBackTop :visibility-height="1" @update:show="isScrolled = $event" />
     <NGlobalStyle />
     <NLoadingBarProvider>
       <NDialogProvider>
