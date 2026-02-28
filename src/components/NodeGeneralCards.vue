@@ -13,8 +13,8 @@ const currentTime = computed(() => now.value.toLocaleString())
 /** 计算所有在线节点的实时速率总和 */
 const totalSpeed = computed(() => {
   const onlineNodes = nodesStore.nodes.filter(node => node.online)
-  const up = onlineNodes.reduce((sum, node) => sum + (node.net_in || 0), 0)
-  const down = onlineNodes.reduce((sum, node) => sum + (node.net_out || 0), 0)
+  const up = onlineNodes.reduce((sum, node) => sum + (node.net_out || 0), 0)
+  const down = onlineNodes.reduce((sum, node) => sum + (node.net_in || 0), 0)
   return { up, down }
 })
 
