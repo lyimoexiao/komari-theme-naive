@@ -323,7 +323,7 @@ function getTrafficUsed(node: NodeData): number {
                         :upload="node.net_total_up ?? 0"
                         :download="node.net_total_down ?? 0"
                         :traffic-limit="node.traffic_limit"
-                        :traffic-limit-type="node.traffic_limit_type || 'sum'"
+                        :traffic-limit-type="(node.traffic_limit_type || 'sum')"
                         height="4px"
                       />
                     </div>

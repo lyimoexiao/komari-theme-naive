@@ -213,7 +213,7 @@ const trafficUsed = computed(() => {
               :upload="props.node.net_total_up ?? 0"
               :download="props.node.net_total_down ?? 0"
               :traffic-limit="props.node.traffic_limit"
-              :traffic-limit-type="props.node.traffic_limit_type || 'sum'"
+              :traffic-limit-type="(props.node.traffic_limit_type || 'sum')"
             />
             <NText :depth="3" class="text-xs">
               <template v-if="showTrafficProgress">

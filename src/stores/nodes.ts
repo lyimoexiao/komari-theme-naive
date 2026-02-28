@@ -2,6 +2,9 @@ import type { Client, NodeStatus } from '@/utils/rpc'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
+/** 流量限制类型 */
+export type TrafficLimitType = 'up' | 'down' | 'min' | 'max' | 'sum'
+
 /** 节点完整信息（合并 Client 和 Status） */
 export interface NodeData {
   uuid: string
@@ -33,7 +36,7 @@ export interface NodeData {
   tags: string
   hidden: boolean
   traffic_limit: number
-  traffic_limit_type: string
+  traffic_limit_type: TrafficLimitType
   created_at: string
   updated_at: string
   // Status 信息
@@ -151,7 +154,7 @@ const useNodesStore = defineStore('nodes', () => {
       tags: client.tags,
       hidden: client.hidden,
       traffic_limit: client.traffic_limit,
-      traffic_limit_type: client.traffic_limit_type,
+      traffic_limit_type: client.traffic_limit_type as TrafficLimitType,
       created_at: client.created_at,
       updated_at: client.updated_at,
       // Status 默认值
