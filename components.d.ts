@@ -20,8 +20,6 @@ declare module 'vue' {
     NodeCard: typeof import('./src/components/NodeCard.vue')['default']
     NodeGeneralCards: typeof import('./src/components/NodeGeneralCards.vue')['default']
     NodeList: typeof import('./src/components/NodeList.vue')['default']
-    NTag: typeof import('naive-ui')['NTag']
-    NTooltip: typeof import('naive-ui')['NTooltip']
     PingChart: typeof import('./src/components/PingChart.vue')['default']
     Provider: typeof import('./src/components/Provider.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']

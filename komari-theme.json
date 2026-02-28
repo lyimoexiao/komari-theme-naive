@@ -49,7 +49,7 @@
       { "key": "alertEnabled", "name": "启用公告", "type": "switch", "default": false, "help": "在首页显示自定义公告" },
       { "key": "alertType", "name": "公告类型", "type": "select", "default": "info", "options": "default,info,success,warning,error", "help": "公告的显示类型" },
       { "key": "alertTitle", "name": "公告标题", "type": "string", "default": "", "help": "公告的标题内容" },
-      { "key": "alertContent", "name": "公告内容", "type": "string", "default": "", "help": "公告的详细内容（支持简单 Markdown 格式，受限于 Komari Admin 仅支持 Input 组件，请转译换行等字符后贴入）" },
+      { "key": "alertContent", "name": "公告内容", "type": "richtext", "default": "", "help": "公告的详细内容（支持简单 Markdown 格式）" },
       { "name": "备案设置", "type": "title" },
       { "key": "icpEnabled", "name": "显示备案号", "type": "switch", "default": false, "help": "在页脚显示网站备案号" },
       { "key": "icpNumber", "name": "备案号", "type": "string", "default": "", "help": "网站备案号（如：京ICP备12345678号）" },

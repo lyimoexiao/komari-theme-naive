@@ -204,12 +204,12 @@ const customTags = computed(() => {
                 <NText :depth="3" class="text-[13px]">
                   CPU
                 </NText>
-                <NText class="text-[13px]">
+                <NText class="text-[13px] font-tcloud-number">
                   {{ (props.node.cpu ?? 0).toFixed(1) }}%
                 </NText>
               </div>
               <NProgress :show-indicator="false" :percentage="props.node.cpu ?? 0" :status="cpuStatus" />
-              <NText :depth="3" class="text-[11px]">
+              <NText :depth="3" class="text-[11px] font-tcloud-number">
                 {{ node.load.toFixed(2) ?? 0 }} | {{ node.load5.toFixed(2) ?? 0 }} | {{ node.load15.toFixed(2) ?? 0 }}
               </NText>
             </div>
@@ -220,12 +220,12 @@ const customTags = computed(() => {
                 <NText :depth="3" class="text-[13px]">
                   内存
                 </NText>
-                <NText class="text-[13px]">
+                <NText class="text-[13px] font-tcloud-number">
                   {{ memPercentage.toFixed(1) }}%
                 </NText>
               </div>
               <NProgress :show-indicator="false" :percentage="memPercentage" :status="memStatus" />
-              <NText :depth="3" class="text-[11px]">
+              <NText :depth="3" class="text-[11px] font-tcloud-number">
                 {{ formatBytes(props.node.ram ?? 0) }} / {{ formatBytes(props.node.mem_total ?? 0) }}
               </NText>
             </div>
@@ -236,12 +236,12 @@ const customTags = computed(() => {
                 <NText :depth="3" class="text-[13px]">
                   硬盘
                 </NText>
-                <NText class="text-[13px]">
+                <NText class="text-[13px] font-tcloud-number">
                   {{ diskPercentage.toFixed(1) }}%
                 </NText>
               </div>
               <NProgress :show-indicator="false" :percentage="diskPercentage" :status="diskStatus" />
-              <NText :depth="3" class="text-[11px]">
+              <NText :depth="3" class="text-[11px] font-tcloud-number">
                 {{ formatBytes(props.node.disk ?? 0) }} / {{ formatBytes(props.node.disk_total ?? 0) }}
               </NText>
             </div>
@@ -252,7 +252,7 @@ const customTags = computed(() => {
                 <NText :depth="3" class="text-[13px]">
                   流量
                 </NText>
-                <NText class="text-[13px]">
+                <NText class="text-[13px] font-tcloud-number">
                   <template v-if="showTrafficProgress">
                     {{ trafficUsedPercentage.toFixed(1) }}%
                   </template>
@@ -268,13 +268,18 @@ const customTags = computed(() => {
                 :traffic-limit="props.node.traffic_limit"
                 :traffic-limit-type="(props.node.traffic_limit_type || 'sum')"
               />
-              <NText :depth="3" class="text-[11px]">
-                <template v-if="showTrafficProgress">
-                  {{ formatBytes(trafficUsed) }} / {{ formatBytes(props.node.traffic_limit) }}（<span :style="{ color: themeVars.successColor }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span> ｜ <span :style="{ color: themeVars.infoColor }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>）
+              <NTooltip v-if="showTrafficProgress">
+                <template #trigger>
+                  <NText :depth="3" class="text-[11px] cursor-help font-tcloud-number">
+                    {{ formatBytes(trafficUsed) }} / {{ formatBytes(props.node.traffic_limit) }}
+                  </NText>
                 </template>
-                <template v-else>
+                <NText class="text-[11px]">
                   <span :style="{ color: themeVars.successColor }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span> ｜ <span :style="{ color: themeVars.infoColor }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
-                </template>
+                </NText>
+              </NTooltip>
+              <NText v-else :depth="3" class="text-[11px] font-tcloud-number">
+                <span :style="{ color: themeVars.successColor }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span> ｜ <span :style="{ color: themeVars.infoColor }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
               </NText>
             </div>
           </div>
@@ -284,7 +289,7 @@ const customTags = computed(() => {
             <NText :depth="3" class="text-[13px]">
               网络速率
             </NText>
-            <NText class="text-[13px]">
+            <NText class="text-[13px] font-tcloud-number">
               <span :style="{ color: themeVars.successColor }">↑ {{ formatBytesPerSecond(props.node.net_out ?? 0) }}</span> ｜ <span :style="{ color: themeVars.infoColor }">↓ {{ formatBytesPerSecond(props.node.net_in ?? 0) }}</span>
             </NText>
           </div>
@@ -303,7 +308,7 @@ const customTags = computed(() => {
               >
                 {{ tag.text }}
               </NTag>
-              <NText class="text-[13px]">
+              <NText class="text-[13px] font-tcloud-number">
                 {{ formatUptime(props.node.uptime ?? 0) }}
               </NText>
             </div>
