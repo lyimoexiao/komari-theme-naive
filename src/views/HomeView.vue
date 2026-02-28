@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { useDebounceFn, useScroll } from '@vueuse/core'
+import { useDebounceFn } from '@vueuse/core'
 import { NAlert, NDivider, NEmpty, NInput, NRadioButton, NRadioGroup, NTabPane, NTabs } from 'naive-ui'
-import { computed, defineAsyncComponent, defineOptions, onActivated, onDeactivated, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
+import { renderSimpleMarkdown } from '@/utils/helper'
 import { isRegionMatch } from '@/utils/regionHelper'
 
 // 定义组件名称，用于 KeepAlive 匹配
@@ -22,22 +23,19 @@ const nodesStore = useNodesStore()
 
 const router = useRouter()
 
-// 使用 VueUse 的 useScroll 监听滚动
-const { y } = useScroll(window, { behavior: 'smooth' })
-
 // 组件激活时恢复滚动位置
 onActivated(() => {
   if (appStore.homeScrollPosition > 0) {
-    // 使用 nextTick 确保 DOM 已渲染
-    setTimeout(() => {
+    // 使用 nextTick 确保 DOM 已渲染完成后再恢复滚动
+    nextTick(() => {
       window.scrollTo({ top: appStore.homeScrollPosition, behavior: 'instant' })
-    }, 0)
+    })
   }
 })
 
 // 组件失活时保存滚动位置
 onDeactivated(() => {
-  appStore.homeScrollPosition = y.value
+  appStore.homeScrollPosition = window.scrollY
 })
 
 const searchText = ref('')
@@ -153,7 +151,8 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
     <!-- 自定义公告 -->
     <div v-if="appStore.alertEnabled && appStore.alertContent" class="alert px-4">
       <NAlert :type="appStore.alertType" :title="appStore.alertTitle || undefined" show-icon>
-        {{ appStore.alertContent }}
+        <!-- eslint-disable-next-line vue/no-v-html -->
+        <span v-html="renderSimpleMarkdown(appStore.alertContent)" />
       </NAlert>
     </div>
     <NodeGeneralCards />

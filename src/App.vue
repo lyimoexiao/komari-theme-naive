@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { tryOnMounted, tryOnUnmounted } from '@vueuse/core'
-import { computed } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import LoadingCover from './components/LoadingCover.vue'
@@ -9,6 +8,9 @@ import { useAppStore } from './stores/app'
 import { destroyInitManager, initApp } from './utils/init'
 
 const appStore = useAppStore()
+
+// 组件就绪状态：用于确保 DOM 完全渲染后再隐藏 loading
+const isReady = ref(false)
 
 // 计算页面容器的样式
 const pageContainerStyle = computed(() => {
@@ -21,13 +23,23 @@ const pageContainerStyle = computed(() => {
   }
 })
 
-// 使用 VueUse 的 tryOnMounted，在组件卸载后自动忽略异步操作结果
-tryOnMounted(async () => {
-  await initApp()
+// 初始化应用
+onMounted(async () => {
+  try {
+    await initApp()
+    // 确保 DOM 更新完成后再标记为就绪
+    await nextTick()
+    isReady.value = true
+  }
+  catch (error) {
+    console.error('[App] Initialization failed:', error)
+    // 即使失败也要标记为就绪，显示错误状态
+    isReady.value = true
+  }
 })
 
-// 使用 VueUse 的 tryOnUnmounted，在组件卸载时销毁 InitManager，防止内存泄漏
-tryOnUnmounted(() => {
+// 组件卸载时销毁 InitManager，防止内存泄漏
+onUnmounted(() => {
   destroyInitManager()
 })
 </script>
