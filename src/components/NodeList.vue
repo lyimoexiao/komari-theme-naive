@@ -63,6 +63,23 @@ function getColumnPadding(col: string): Record<string, string> {
   return {}
 }
 
+// 获取列的外边距样式
+function getColumnMargin(col: string): Record<string, string> {
+  const margin = appStore.listColumnMargin[col]
+  if (margin) {
+    return { margin }
+  }
+  return {}
+}
+
+// 获取列的完整样式（合并 padding 和 margin）
+function getColumnStyle(col: string): Record<string, string> {
+  return {
+    ...getColumnPadding(col),
+    ...getColumnMargin(col),
+  }
+}
+
 // 计算行高度样式
 const rowHeightStyle = computed(() => {
   const height = appStore.listRowHeight
@@ -146,47 +163,47 @@ function getTrafficUsed(node: NodeData): number {
     <NList hoverable clickable bordered class="min-w-fit w-full">
       <template #header>
         <div class="node-list-header" :style="gridStyle">
-          <div v-if="showColumn('status')" class="node-list-header__status" :style="getColumnPadding('status')">
+          <div v-if="showColumn('status')" class="node-list-header__status" :style="getColumnStyle('status')">
             <NText :depth="3" class="text-xs">
               状态
             </NText>
           </div>
-          <div v-if="showColumn('region')" class="node-list-header__region" :style="getColumnPadding('region')">
+          <div v-if="showColumn('region')" class="node-list-header__region" :style="getColumnStyle('region')">
             <NText :depth="3" class="text-xs">
               地区
             </NText>
           </div>
-          <div v-if="showColumn('name')" class="node-list-header__name" :style="getColumnPadding('name')">
+          <div v-if="showColumn('name')" class="node-list-header__name" :style="getColumnStyle('name')">
             <NText :depth="3" class="text-xs">
               节点
             </NText>
           </div>
-          <div v-if="showColumn('uptime')" class="node-list-header__uptime" :style="getColumnPadding('uptime')">
+          <div v-if="showColumn('uptime')" class="node-list-header__uptime" :style="getColumnStyle('uptime')">
             <NText :depth="3" class="text-xs">
               运行时间
             </NText>
           </div>
-          <div v-if="showColumn('os')" class="node-list-header__os" :style="getColumnPadding('os')">
+          <div v-if="showColumn('os')" class="node-list-header__os" :style="getColumnStyle('os')">
             <NText :depth="3" class="text-xs">
               系统
             </NText>
           </div>
-          <div v-if="showColumn('cpu')" class="node-list-header__cpu" :style="getColumnPadding('cpu')">
+          <div v-if="showColumn('cpu')" class="node-list-header__cpu" :style="getColumnStyle('cpu')">
             <NText :depth="3" class="text-xs">
               CPU
             </NText>
           </div>
-          <div v-if="showColumn('mem')" class="node-list-header__mem" :style="getColumnPadding('mem')">
+          <div v-if="showColumn('mem')" class="node-list-header__mem" :style="getColumnStyle('mem')">
             <NText :depth="3" class="text-xs">
               内存
             </NText>
           </div>
-          <div v-if="showColumn('disk')" class="node-list-header__disk" :style="getColumnPadding('disk')">
+          <div v-if="showColumn('disk')" class="node-list-header__disk" :style="getColumnStyle('disk')">
             <NText :depth="3" class="text-xs">
               硬盘
             </NText>
           </div>
-          <div v-if="showColumn('traffic')" class="node-list-header__traffic" :style="getColumnPadding('traffic')">
+          <div v-if="showColumn('traffic')" class="node-list-header__traffic" :style="getColumnStyle('traffic')">
             <NText :depth="3" class="text-xs">
               流量
             </NText>
@@ -196,7 +213,7 @@ function getTrafficUsed(node: NodeData): number {
       <NListItem v-for="node in props.nodes" :key="node.uuid" :class="{ 'opacity-50 pointer-events-none': !node.online }" :style="rowHeightStyle" @click="handleClick(node)">
         <div class="node-list-item" :style="gridStyle">
           <!-- 在线状态指示器 -->
-          <div v-if="showColumn('status')" class="node-list-item__status" :style="getColumnPadding('status')">
+          <div v-if="showColumn('status')" class="node-list-item__status" :style="getColumnStyle('status')">
             <div class="flex gap-1 items-center">
               <NTooltip v-if="appStore.showPingChartButton">
                 <template #trigger>
@@ -219,28 +236,28 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 国旗 -->
-          <div v-if="showColumn('region')" class="node-list-item__region" :style="getColumnPadding('region')">
+          <div v-if="showColumn('region')" class="node-list-item__region" :style="getColumnStyle('region')">
             <NIcon size="20">
               <img :src="getFlagSrc(node.region)" :alt="getRegionDisplayName(node.region)" class="rounded-sm">
             </NIcon>
           </div>
 
           <!-- 节点名称 -->
-          <div v-if="showColumn('name')" class="node-list-item__name" :style="getColumnPadding('name')">
+          <div v-if="showColumn('name')" class="node-list-item__name" :style="getColumnStyle('name')">
             <NText class="text-sm font-semibold">
               {{ node.name }}
             </NText>
           </div>
 
           <!-- 运行时间 -->
-          <div v-if="showColumn('uptime')" class="node-list-item__uptime" :style="getColumnPadding('uptime')">
+          <div v-if="showColumn('uptime')" class="node-list-item__uptime" :style="getColumnStyle('uptime')">
             <NText :depth="3" class="text-xs">
               {{ formatUptime(node.uptime ?? 0) }}
             </NText>
           </div>
 
           <!-- 操作系统 -->
-          <div v-if="showColumn('os')" class="node-list-item__os" :style="getColumnPadding('os')">
+          <div v-if="showColumn('os')" class="node-list-item__os" :style="getColumnStyle('os')">
             <div class="flex gap-1 items-center">
               <NIcon size="16">
                 <img :src="getOSImage(node.os)" :alt="getOSName(node.os)">
@@ -252,7 +269,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- CPU -->
-          <div v-if="showColumn('cpu')" class="node-list-item__cpu" :style="getColumnPadding('cpu')">
+          <div v-if="showColumn('cpu')" class="node-list-item__cpu" :style="getColumnStyle('cpu')">
             <div class="flex flex-col gap-0.5">
               <div class="text-xs flex gap-1 items-center">
                 <NText>{{ (node.cpu ?? 0).toFixed(1) }}%</NText>
@@ -262,7 +279,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 内存 -->
-          <div v-if="showColumn('mem')" class="node-list-item__mem" :style="getColumnPadding('mem')">
+          <div v-if="showColumn('mem')" class="node-list-item__mem" :style="getColumnStyle('mem')">
             <div class="flex flex-col gap-0.5">
               <div class="text-xs flex gap-1 items-center">
                 <NText>{{ ((node.ram ?? 0) / (node.mem_total || 1) * 100).toFixed(1) }}%</NText>
@@ -275,7 +292,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 硬盘 -->
-          <div v-if="showColumn('disk')" class="node-list-item__disk" :style="getColumnPadding('disk')">
+          <div v-if="showColumn('disk')" class="node-list-item__disk" :style="getColumnStyle('disk')">
             <div class="flex flex-col gap-0.5">
               <div class="text-xs flex gap-1 items-center">
                 <NText>{{ ((node.disk ?? 0) / (node.disk_total || 1) * 100).toFixed(1) }}%</NText>
@@ -288,7 +305,7 @@ function getTrafficUsed(node: NodeData): number {
           </div>
 
           <!-- 流量 -->
-          <div v-if="showColumn('traffic')" class="node-list-item__traffic" :style="getColumnPadding('traffic')">
+          <div v-if="showColumn('traffic')" class="node-list-item__traffic" :style="getColumnStyle('traffic')">
             <div class="traffic-cell">
               <!-- 有流量限制时显示进度条版式 -->
               <template v-if="showTrafficProgress(node)">

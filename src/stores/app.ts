@@ -218,6 +218,36 @@ const useAppStore = defineStore('app', () => {
     }
   })
 
+  // 计算属性：List 视图列外边距配置
+  const listColumnMargin = computed<Record<string, string>>(() => {
+    const settings = publicSettings.value?.theme_settings
+    const defaultMargin: Record<string, string> = {}
+
+    if (!settings || typeof settings.listColumnMargin !== 'string') {
+      return defaultMargin
+    }
+
+    try {
+      const parsed = JSON.parse(settings.listColumnMargin)
+      if (typeof parsed !== 'object' || parsed === null) {
+        return defaultMargin
+      }
+
+      // 提取有效的外边距配置
+      const validMargin: Record<string, string> = {}
+      for (const col of DEFAULT_LIST_VIEW_COLUMNS) {
+        if (typeof parsed[col] === 'string' && parsed[col].trim()) {
+          validMargin[col] = parsed[col].trim()
+        }
+      }
+
+      return validMargin
+    }
+    catch {
+      return defaultMargin
+    }
+  })
+
   // 计算属性：List 视图行高度配置
   const listRowHeight = computed<string>(() => {
     const settings = publicSettings.value?.theme_settings
@@ -380,6 +410,7 @@ const useAppStore = defineStore('app', () => {
     listColumnWidths,
     listColumnGap,
     listColumnPadding,
+    listColumnMargin,
     listRowHeight,
     showPingChartButton,
     uptimeFormat,
