@@ -5,6 +5,13 @@
 <img src="docs/preview.png" alt="Komari Theme Naive" />
 </a>
 
+## 使用
+
+1. 从 [Release 页面](https://github.com/lyimoexiao/komari-theme-naive/releases) 下载最新的 `komari-theme-naive-build-*.zip` 文件
+2. 登录 Komari Monitor 后，点击 `设置`，选择 `主题管理` 选项卡
+3. 点击 `上传主题` 按钮，选择下载的 `komari-theme-naive-build-*.zip` 文件
+4. 刷新页面，即可看到新的主题
+
 ## 环境要求
 
 - Node.js: `^20.19.0` 或 `>=22.12.0`
