@@ -3,9 +3,9 @@ import { useDebounceFn } from '@vueuse/core'
 import { NAlert, NDivider, NEmpty, NInput, NRadioButton, NRadioGroup, NTabPane, NTabs } from 'naive-ui'
 import { computed, defineAsyncComponent, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
-import { renderSimpleMarkdown } from '@/utils/helper'
 import { isRegionMatch } from '@/utils/regionHelper'
 
 // 定义组件名称，用于 KeepAlive 匹配
@@ -151,8 +151,7 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
     <!-- 自定义公告 -->
     <div v-if="appStore.alertEnabled && appStore.alertContent" class="alert px-4">
       <NAlert :type="appStore.alertType" :title="appStore.alertTitle || undefined" show-icon>
-        <!-- eslint-disable-next-line vue/no-v-html -->
-        <span v-html="renderSimpleMarkdown(appStore.alertContent)" />
+        <MarkdownRenderer :content="appStore.alertContent" />
       </NAlert>
     </div>
     <NodeGeneralCards />
