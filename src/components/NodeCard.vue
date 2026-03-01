@@ -140,17 +140,6 @@ const customTags = computed(() => {
           <NIcon class="shrink-0">
             <img :src="`/images/flags/${getRegionCode(props.node.region)}.svg`" :alt="getRegionDisplayName(props.node.region)">
           </NIcon>
-          <!-- 自定义标签显示在节点名前 -->
-          <div v-if="customTags.length > 0" class="flex shrink-0 flex-wrap gap-1 items-center">
-            <NTag
-              v-for="(tag, index) in customTags"
-              :key="index"
-              size="small"
-              :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
-            >
-              {{ tag.text }}
-            </NTag>
-          </div>
           <NEllipsis class="text-lg font-bold m-0 flex-1 min-w-0">
             {{ props.node.name }}
           </NEllipsis>
@@ -300,6 +289,16 @@ const customTags = computed(() => {
               运行时间
             </NText>
             <div class="flex gap-2 items-center">
+              <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                {{ formatUptime(props.node.uptime ?? 0) }}
+              </NText>
+            </div>
+          </div>
+
+          <!-- 标签、剩余时间及价格信息 -->
+          <div class="flex-between">
+            <div class="flex gap-2 items-center">
+              <!-- 剩余时间及价格信息 -->
               <NTag
                 v-for="(tag, index) in priceTags"
                 :key="index"
@@ -308,9 +307,17 @@ const customTags = computed(() => {
               >
                 {{ tag.text }}
               </NTag>
-              <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                {{ formatUptime(props.node.uptime ?? 0) }}
-              </NText>
+              <!-- 自定义标签 -->
+              <div v-if="customTags.length > 0">
+                <NTag
+                  v-for="(tag, index) in customTags"
+                  :key="index"
+                  size="small"
+                  :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
+                >
+                  {{ tag.text }}
+                </NTag>
+              </div>
             </div>
           </div>
         </div>
