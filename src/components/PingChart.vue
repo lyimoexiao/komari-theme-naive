@@ -674,13 +674,13 @@ const blurClass = computed(() => {
 </template>
 
 <style scoped>
-/* 毛玻璃任务卡片样式 - 使用 CSS 变量 */
+/* 毛玻璃任务卡片样式 */
 .glass-task-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+  background-color: rgba(255, 255, 255, 0.7);
   border-radius: var(--n-border-radius);
 }
 
 :global(html.dark) .glass-task-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+  background-color: rgba(24, 24, 28, 0.85);
 }
 </style>

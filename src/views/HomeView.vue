@@ -252,21 +252,21 @@ const blurClass = computed(() => {
 .glass-input-enabled :deep(.n-input__input-el),
 .glass-input-enabled :deep(.n-input__border),
 .glass-input-enabled :deep(.n-input__state-border) {
-  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
 }
 
 :global(html.dark) .glass-input-enabled :deep(.n-input__input-el),
 :global(html.dark) .glass-input-enabled :deep(.n-input__border),
 :global(html.dark) .glass-input-enabled :deep(.n-input__state-border) {
-  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 }
 
 /* 毛玻璃 RadioButton 样式 */
 .glass-radio-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
 }
 
 :global(html.dark) .glass-radio-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>

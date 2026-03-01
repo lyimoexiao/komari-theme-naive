@@ -560,20 +560,20 @@ const columnTitles: Record<string, string> = {
   }
 }
 
-/* 毛玻璃列表样式 - 使用 CSS 变量 */
+/* 毛玻璃列表样式 */
 .glass-list-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
 
   :deep(.n-list-item) {
-    background-color: color-mix(in srgb, var(--n-color) 60%, transparent);
+    background-color: rgba(255, 255, 255, 0.6);
   }
 }
 
 :global(html.dark) .glass-list-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 
   :deep(.n-list-item) {
-    background-color: color-mix(in srgb, var(--n-color) 70%, transparent);
+    background-color: rgba(24, 24, 28, 0.7);
   }
 }
 </style>

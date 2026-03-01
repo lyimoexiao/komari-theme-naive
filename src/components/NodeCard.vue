@@ -423,9 +423,10 @@ const cardBlurClass = computed(() => {
   }
 }
 
-// 毛玻璃卡片样式
+/* 毛玻璃卡片样式 */
 .glass-card-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  border-radius: var(--n-border-radius);
 
   &:hover {
     filter: brightness(0.95);
@@ -433,7 +434,7 @@ const cardBlurClass = computed(() => {
 }
 
 :global(html.dark) .glass-card-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 
   &:hover {
     filter: brightness(1.1);

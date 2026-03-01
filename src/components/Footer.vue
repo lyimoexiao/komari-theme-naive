@@ -157,10 +157,10 @@ const blurClass = computed(() => {
 <style scoped>
 /* 毛玻璃 Footer 样式 */
 .glass-footer-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+  background-color: rgba(255, 255, 255, 0.7) !important;
 }
 
 :global(html.dark) .glass-footer-enabled {
-  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>
