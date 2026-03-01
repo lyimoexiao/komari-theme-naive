@@ -122,6 +122,11 @@ const osConfigs: OSConfig[] = [
     keywords: ['synology', 'dsm', 'synology dsm'],
   },
   {
+    name: 'fnOS',
+    image: '/assets/logo/os-fnos.ico',
+    keywords: ['fnos', 'fnnas'],
+  },
+  {
     name: 'Proxmox VE',
     image: '/images/logo/os-proxmox.ico',
     keywords: ['proxmox', 'proxmox ve'],
