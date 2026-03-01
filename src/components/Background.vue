@@ -201,22 +201,45 @@ onUnmounted(() => {
   height: 100%;
 }
 
-// 默认背景：渐变色
+// 默认背景：亮色模式 - 温暖的渐变色
 .background-default {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 25%, #d4e5f7 50%, #e8e0f0 75%, #f5f0e8 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
 }
 
+// 暗色模式 - 深邃的渐变色
 :global(html.dark) .background-default {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #1f3a5f 50%, #2d2d44 75%, #1a1a2e 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
 }
 
-// 加载中背景：与默认背景相同
+// 加载中背景：亮色模式
 .background-loading {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 25%, #d4e5f7 50%, #e8e0f0 75%, #f5f0e8 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
 }
 
+// 加载中背景：暗色模式
 :global(html.dark) .background-loading {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #1f3a5f 50%, #2d2d44 75%, #1a1a2e 100%);
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+}
+
+// 渐变动画
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .background-media {
