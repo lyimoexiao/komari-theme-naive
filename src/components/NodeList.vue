@@ -519,7 +519,7 @@ const columnTitles: Record<string, string> = {
   justify-content: center;
 }
 
-// 亮色模式高对比度样式
+/* 亮色模式高对比度样式 */
 .light-list-contrast {
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.12);
