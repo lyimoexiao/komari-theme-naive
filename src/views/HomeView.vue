@@ -254,7 +254,7 @@ const blurClass = computed(() => {
   border-radius: var(--n-border-radius);
 }
 
-:global(html.dark) .glass-input-enabled {
+html.dark .glass-input-enabled {
   background-color: rgba(24, 24, 28, 0.85) !important;
 }
 
@@ -263,7 +263,7 @@ const blurClass = computed(() => {
   background-color: rgba(255, 255, 255, 0.7) !important;
 }
 
-:global(html.dark) .glass-radio-enabled {
+html.dark .glass-radio-enabled {
   background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>

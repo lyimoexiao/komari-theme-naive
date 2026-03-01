@@ -259,7 +259,7 @@ const cardBlurClass = computed(() => {
   }
 }
 
-:global(html.dark) .glass-card-enabled {
+html.dark .glass-card-enabled {
   background-color: rgba(24, 24, 28, 0.85) !important;
 
   &:hover {

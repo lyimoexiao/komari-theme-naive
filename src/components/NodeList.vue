@@ -569,7 +569,7 @@ const columnTitles: Record<string, string> = {
   }
 }
 
-:global(html.dark) .glass-list-enabled {
+html.dark .glass-list-enabled {
   background-color: rgba(24, 24, 28, 0.85) !important;
 
   :deep(.n-list-item) {

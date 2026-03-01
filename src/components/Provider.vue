@@ -141,14 +141,18 @@ watch(
 
 // 当启用自定义背景时，设置 body 背景透明
 watch(
-  () => appStore.backgroundEnabled,
-  (enabled) => {
+  [() => appStore.backgroundEnabled, isDark],
+  ([enabled, dark]) => {
     const body = document.body
     if (enabled) {
-      body.style.backgroundColor = 'transparent'
+      // 使用 cssText 覆盖所有背景样式
+      body.style.setProperty('background-color', 'transparent', 'important')
     }
     else {
-      body.style.backgroundColor = ''
+      // 恢复默认背景
+      body.style.removeProperty('background-color')
+      // 设置正确的背景色
+      body.style.backgroundColor = dark ? 'rgb(16, 16, 20)' : '#fff'
     }
   },
   { immediate: true },

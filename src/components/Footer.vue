@@ -160,7 +160,7 @@ const blurClass = computed(() => {
   background-color: rgba(255, 255, 255, 0.7) !important;
 }
 
-:global(html.dark) .glass-footer-enabled {
+html.dark .glass-footer-enabled {
   background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>

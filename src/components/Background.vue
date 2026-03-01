@@ -209,7 +209,7 @@ onUnmounted(() => {
 }
 
 // 暗色模式 - 深邃的渐变色
-:global(html.dark) .background-default {
+html.dark .background-default {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #1f3a5f 50%, #2d2d44 75%, #1a1a2e 100%);
   background-size: 400% 400%;
   animation: gradientShift 20s ease infinite;
@@ -223,7 +223,7 @@ onUnmounted(() => {
 }
 
 // 加载中背景：暗色模式
-:global(html.dark) .background-loading {
+html.dark .background-loading {
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #1f3a5f 50%, #2d2d44 75%, #1a1a2e 100%);
   background-size: 400% 400%;
   animation: gradientShift 20s ease infinite;

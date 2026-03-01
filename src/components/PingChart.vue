@@ -686,7 +686,7 @@ const blurClass = computed(() => {
   border-radius: var(--n-border-radius);
 }
 
-:global(html.dark) .glass-task-enabled {
+html.dark .glass-task-enabled {
   background-color: rgba(24, 24, 28, 0.85);
 }
 </style>
