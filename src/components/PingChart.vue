@@ -676,8 +676,14 @@ const blurClass = computed(() => {
 <style scoped>
 /* 默认任务卡片样式 */
 .task-card-default {
-  background-color: var(--n-color);
+  background-color: rgba(255, 255, 255, 0.9);
   border-radius: var(--n-border-radius);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+html.dark .task-card-default {
+  background-color: rgba(30, 30, 35, 0.95);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* 毛玻璃任务卡片样式 */
