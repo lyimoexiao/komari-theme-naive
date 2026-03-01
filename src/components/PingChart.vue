@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { NButton, NEmpty, NSpin, NSwitch, NTooltip } from 'naive-ui'
+import { NButton, NEmpty, NSpin, NSwitch, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
 import { useAppStore } from '@/stores/app'
@@ -13,6 +13,7 @@ const props = defineProps<{
 }>()
 
 const appStore = useAppStore()
+const themeVars = useThemeVars()
 // 使用共享的 RPC 实例，避免重复创建连接
 const rpc = getSharedRpc()
 
@@ -545,7 +546,7 @@ onMounted(() => {
           <div
             v-for="task in latestValues"
             :key="task.id"
-            class="p-3 flex gap-3 cursor-pointer select-none items-center"
+            class="p-3 border border-transparent flex gap-3 cursor-pointer select-none transition-colors items-center hover:border-solid"
             :class="[
               selectedTaskIds.includes(task.id)
                 ? ''
@@ -553,7 +554,10 @@ onMounted(() => {
             ]"
             :style="{
               backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)',
+              borderRadius: themeVars.borderRadius,
             }"
+            :onmouseover="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = task.color)"
+            :onmouseout="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = 'transparent')"
             @click="toggleTask(task.id)"
           >
             <div
@@ -570,54 +574,54 @@ onMounted(() => {
                   <div class="text-sm gap-x-4 gap-y-1.5 grid grid-cols-2">
                     <template v-if="task.min !== undefined">
                       <span style="color: var(--n-text-color-3)">最小</span>
-                      <span class="font-medium font-mono">{{ Math.round(task.min) }} ms</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ Math.round(task.min) }} ms</span>
                     </template>
                     <template v-if="task.max !== undefined">
                       <span style="color: var(--n-text-color-3)">最大</span>
-                      <span class="font-medium font-mono">{{ Math.round(task.max) }} ms</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ Math.round(task.max) }} ms</span>
                     </template>
                     <template v-if="task.avg !== undefined">
                       <span style="color: var(--n-text-color-3)">平均</span>
-                      <span class="font-medium font-mono">{{ Math.round(task.avg) }} ms</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ Math.round(task.avg) }} ms</span>
                     </template>
                     <template v-if="task.latest !== undefined">
                       <span style="color: var(--n-text-color-3)">最新</span>
-                      <span class="font-medium font-mono">{{ Math.round(task.latest) }} ms</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ Math.round(task.latest) }} ms</span>
                     </template>
                     <template v-if="task.p50 !== undefined">
                       <span style="color: var(--n-text-color-3)">P50</span>
-                      <span class="font-medium font-mono">{{ Math.round(task.p50) }} ms</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ Math.round(task.p50) }} ms</span>
                     </template>
                     <template v-if="task.p99 !== undefined">
                       <span style="color: var(--n-text-color-3)">P99</span>
-                      <span class="font-medium font-mono">{{ Math.round(task.p99) }} ms</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ Math.round(task.p99) }} ms</span>
                     </template>
                     <template v-if="task.p99_p50_ratio !== undefined">
                       <span style="color: var(--n-text-color-3)">波动率</span>
-                      <span class="font-medium font-mono">{{ task.p99_p50_ratio.toFixed(2) }}</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ task.p99_p50_ratio.toFixed(2) }}</span>
                     </template>
                     <template v-if="task.interval !== undefined">
                       <span style="color: var(--n-text-color-3)">间隔</span>
-                      <span class="font-medium font-mono">{{ task.interval }}s</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ task.interval }}s</span>
                     </template>
                     <template v-if="task.type">
                       <span style="color: var(--n-text-color-3)">类型</span>
-                      <span class="font-medium font-mono uppercase">{{ task.type }}</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ task.type.toUpperCase() }}</span>
                     </template>
                     <template v-if="task.total !== undefined">
                       <span style="color: var(--n-text-color-3)">总数</span>
-                      <span class="font-medium font-mono">{{ task.total }}</span>
+                      <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily }">{{ task.total }}</span>
                     </template>
                   </div>
                 </NTooltip>
               </div>
               <div class="text-sm mt-1 flex gap-3 items-center" style="color: var(--n-text-color-3)">
-                <span class="font-medium font-mono" style="color: var(--n-text-color-1)">{{ task.latestValue !== null ? `${Math.round(task.latestValue)} ms` : '-' }}</span>
+                <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily, color: 'var(--n-text-color-1)' }">{{ task.latestValue !== null ? `${Math.round(task.latestValue)} ms` : '-' }}</span>
                 <span class="opacity-60">•</span>
-                <span>{{ task.loss.toFixed(1) }}% 丢包</span>
+                <span :style="{ fontFamily: appStore.numberFontFamily }">{{ task.loss.toFixed(1) }}% 丢包</span>
                 <template v-if="task.p99_p50_ratio !== undefined">
                   <span class="opacity-60">•</span>
-                  <span title="波动率 p99/p50">{{ task.p99_p50_ratio.toFixed(1) }} 波动</span>
+                  <span :style="{ fontFamily: appStore.numberFontFamily }" title="波动率 p99/p50">{{ task.p99_p50_ratio.toFixed(1) }} 波动</span>
                 </template>
               </div>
             </div>

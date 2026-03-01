@@ -68,9 +68,20 @@ const useAppStore = defineStore('app', () => {
     return 'card'
   })
 
+  // 校验视图模式是否为合法值
+  function isValidViewMode(value: string | null): value is NodeViewMode {
+    return value === 'card' || value === 'list'
+  }
+
   // 当前实际使用的视图模式
   const nodeViewMode = computed<NodeViewMode>({
-    get: () => storedViewMode.value ?? defaultViewMode.value,
+    get: () => {
+      // 校验 storedViewMode 是否为合法值，非法值时使用默认值
+      if (storedViewMode.value !== null && isValidViewMode(storedViewMode.value)) {
+        return storedViewMode.value
+      }
+      return defaultViewMode.value
+    },
     set: (val) => {
       storedViewMode.value = val
     },
@@ -420,9 +431,9 @@ const useAppStore = defineStore('app', () => {
     return ''
   })
 
-  // 当 publicSettings 加载后，如果 localStorage 没有保存过视图模式，使用默认值
+  // 当 publicSettings 加载后，如果 localStorage 没有保存过视图模式或值为非法值，使用默认值
   watch(publicSettings, (settings) => {
-    if (settings && storedViewMode.value === null) {
+    if (settings && !isValidViewMode(storedViewMode.value)) {
       // 触发 computed setter，会自动保存到 localStorage
       storedViewMode.value = defaultViewMode.value
     }

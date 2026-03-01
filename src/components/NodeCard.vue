@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NodeData } from '@/stores/nodes'
-import { NButton, NCard, NEllipsis, NIcon, NModal, NProgress, NTag, NText, NTooltip, useThemeVars } from 'naive-ui'
+import { NBadge, NButton, NCard, NEllipsis, NIcon, NModal, NProgress, NTag, NText, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, ref } from 'vue'
 import PingChart from '@/components/PingChart.vue'
 import TrafficProgress from '@/components/TrafficProgress.vue'
@@ -174,9 +174,10 @@ const customTags = computed(() => {
             </template>
             查看延迟图表
           </NTooltip>
-          <NTag :type="props.node.online ? 'success' : 'error'">
+          <!-- <NTag :type="props.node.online ? 'success' : 'error'">
             {{ props.node.online ? '在线' : '离线' }}
-          </NTag>
+          </NTag> -->
+          <NBadge :type="props.node.online ? 'success' : 'error'" size="small" dot :processing="props.node.online" />
         </div>
       </template>
       <template #default>
@@ -208,8 +209,8 @@ const customTags = computed(() => {
                   {{ (props.node.cpu ?? 0).toFixed(1) }}%
                 </NText>
               </div>
-              <NProgress :show-indicator="false" :percentage="props.node.cpu ?? 0" :status="cpuStatus" />
-              <NText :depth="3" class="text-[11px]" :style="{ fontFamily: appStore.numberFontFamily }">
+              <NProgress :show-indicator="false" :percentage="props.node.cpu ?? 0" :status="cpuStatus" :height="4" />
+              <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
                 {{ node.load.toFixed(2) ?? 0 }} | {{ node.load5.toFixed(2) ?? 0 }} | {{ node.load15.toFixed(2) ?? 0 }}
               </NText>
             </div>
@@ -224,8 +225,8 @@ const customTags = computed(() => {
                   {{ memPercentage.toFixed(1) }}%
                 </NText>
               </div>
-              <NProgress :show-indicator="false" :percentage="memPercentage" :status="memStatus" />
-              <NText :depth="3" class="text-[11px]" :style="{ fontFamily: appStore.numberFontFamily }">
+              <NProgress :show-indicator="false" :percentage="memPercentage" :status="memStatus" :height="4" />
+              <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
                 {{ formatBytes(props.node.ram ?? 0) }} / {{ formatBytes(props.node.mem_total ?? 0) }}
               </NText>
             </div>
@@ -240,8 +241,8 @@ const customTags = computed(() => {
                   {{ diskPercentage.toFixed(1) }}%
                 </NText>
               </div>
-              <NProgress :show-indicator="false" :percentage="diskPercentage" :status="diskStatus" />
-              <NText :depth="3" class="text-[11px]" :style="{ fontFamily: appStore.numberFontFamily }">
+              <NProgress :show-indicator="false" :percentage="diskPercentage" :status="diskStatus" :height="4" />
+              <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
                 {{ formatBytes(props.node.disk ?? 0) }} / {{ formatBytes(props.node.disk_total ?? 0) }}
               </NText>
             </div>
@@ -263,6 +264,7 @@ const customTags = computed(() => {
               </div>
               <!-- 统一使用 TrafficProgress 组件，自动根据类型选择颜色 -->
               <TrafficProgress
+                :height="4"
                 :upload="props.node.net_total_up ?? 0"
                 :download="props.node.net_total_down ?? 0"
                 :traffic-limit="props.node.traffic_limit"
@@ -274,11 +276,11 @@ const customTags = computed(() => {
                     {{ formatBytes(trafficUsed) }} / {{ formatBytes(props.node.traffic_limit) }}
                   </NText>
                 </template>
-                <NText class="text-[11px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                <NText class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
                   <span :style="{ color: themeVars.successColor }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span> ｜ <span :style="{ color: themeVars.infoColor }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
                 </NText>
               </NTooltip>
-              <NText v-else :depth="3" class="text-[11px]" :style="{ fontFamily: appStore.numberFontFamily }">
+              <NText v-else :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
                 <span :style="{ color: themeVars.successColor }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span> ｜ <span :style="{ color: themeVars.infoColor }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
               </NText>
             </div>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NodeData } from '@/stores/nodes'
-import { NBadge, NButton, NIcon, NList, NListItem, NModal, NProgress, NText, NTooltip, useThemeVars } from 'naive-ui'
+import { NButton, NIcon, NList, NListItem, NModal, NProgress, NTag, NText, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, ref } from 'vue'
 import PingChart from '@/components/PingChart.vue'
 import TrafficProgress from '@/components/TrafficProgress.vue'
@@ -260,7 +260,10 @@ const columnTitles: Record<string, string> = {
                   </template>
                   查看延迟图表
                 </NTooltip>
-                <NBadge :type="node.online ? 'success' : 'error'" :value="node.online ? '在线' : '离线'" />
+                <NTag :type="node.online ? 'success' : 'error'" size="small">
+                  {{ node.online ? '在线' : '离线' }}
+                </NTag>
+                <!-- <NBadge :type="node.online ? 'success' : 'error'" :value="node.online ? '在线' : '离线'" /> -->
               </div>
             </div>
 
@@ -281,12 +284,20 @@ const columnTitles: Record<string, string> = {
             <!-- 标签 -->
             <div v-else-if="col === 'tags'" class="node-list-item__tags" :style="getColumnStyle('tags')">
               <div class="flex flex-wrap gap-1 items-center">
-                <NBadge
+                <NTag
+                  v-for="(tag, index) in getNodeTags(node)"
+                  :key="index"
+                  :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
+                  size="small"
+                >
+                  {{ tag.text }}
+                </NTag>
+                <!-- <NBadge
                   v-for="(tag, index) in getNodeTags(node)"
                   :key="index"
                   :color="tag.color"
                   :value="tag.text"
-                />
+                /> -->
               </div>
             </div>
 

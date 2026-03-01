@@ -64,12 +64,6 @@ const storageInfo = computed<InfoItem[]>(() => [
   { label: '内存交换', value: formatBytes(data.value?.swap_total ?? 0), icon: 'i-icon-park-outline-switch' },
   { label: '硬盘', value: formatBytes(data.value?.disk_total ?? 0), icon: 'i-icon-park-outline-hard-disk' },
 ])
-
-/** 网络信息 */
-const networkInfo = computed<InfoItem[]>(() => [
-  { label: '总流量', value: `↑ ${formatBytes(data.value?.net_total_up ?? 0)} ｜ ↓ ${formatBytes(data.value?.net_total_down ?? 0)}`, icon: 'i-icon-park-outline-transfer-data' },
-  { label: '网络速率', value: `↑ ${formatBytesPerSecond(data.value?.net_out ?? 0)} ｜ ↓ ${formatBytesPerSecond(data.value?.net_in ?? 0)}`, icon: 'i-icon-park-outline-dashboard-one' },
-])
 </script>
 
 <template>
@@ -143,7 +137,7 @@ const networkInfo = computed<InfoItem[]>(() => [
                 <NIcon v-if="item.label === '操作系统'" size="20">
                   <img :src="getOSImage(data.os)" :alt="getOSName(data.os)">
                 </NIcon>
-                <NText class="text-sm break-all">
+                <NText class="text-sm break-all" :style="(item.label === '运行时间' || item.label === '最后上报') ? { fontFamily: appStore.numberFontFamily } : {}">
                   {{ item.value }}
                 </NText>
               </div>
@@ -161,7 +155,7 @@ const networkInfo = computed<InfoItem[]>(() => [
                   {{ item.label }}
                 </NText>
               </div>
-              <NText class="text-sm">
+              <NText class="text-sm" :style="{ fontFamily: appStore.numberFontFamily }">
                 {{ item.value }}
               </NText>
             </div>
@@ -171,15 +165,26 @@ const networkInfo = computed<InfoItem[]>(() => [
         <!-- 网络信息 -->
         <NCard title="网络信息" size="small">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
-            <div v-for="item in networkInfo" :key="item.label" class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
-                <div v-if="item.icon" :class="item.icon" class="text-gray-400" />
+                <div class="i-icon-park-outline-transfer-data text-gray-400" />
                 <NText :depth="3" class="text-sm">
-                  {{ item.label }}
+                  总流量
                 </NText>
               </div>
-              <NText class="text-sm break-all">
-                {{ item.value }}
+              <NText class="text-sm break-all" :style="{ fontFamily: appStore.numberFontFamily }">
+                ↑ {{ formatBytes(data?.net_total_up ?? 0) }} ｜ ↓ {{ formatBytes(data?.net_total_down ?? 0) }}
+              </NText>
+            </div>
+            <div class="flex flex-col gap-1">
+              <div class="flex gap-1 items-center">
+                <div class="i-icon-park-outline-dashboard-one text-gray-400" />
+                <NText :depth="3" class="text-sm">
+                  网络速率
+                </NText>
+              </div>
+              <NText class="text-sm break-all" :style="{ fontFamily: appStore.numberFontFamily }">
+                ↑ {{ formatBytesPerSecond(data?.net_out ?? 0) }} ｜ ↓ {{ formatBytesPerSecond(data?.net_in ?? 0) }}
               </NText>
             </div>
           </div>
