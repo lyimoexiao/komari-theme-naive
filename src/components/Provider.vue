@@ -127,7 +127,7 @@ watch(
 
 <template>
   <NConfigProvider :theme="theme" :theme-overrides="themeOverride" :locale="locale" :date-locale="dateLocale">
-    <NBackTop :visibility-height="1" @update:show="isScrolled = $event" />
+    <NBackTop :visibility-height="1" class="z-9999" @update:show="isScrolled = $event" />
     <NGlobalStyle />
     <NLoadingBarProvider>
       <NDialogProvider>

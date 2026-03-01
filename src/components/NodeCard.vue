@@ -141,7 +141,7 @@ const customTags = computed(() => {
             <img :src="`/images/flags/${getRegionCode(props.node.region)}.svg`" :alt="getRegionDisplayName(props.node.region)">
           </NIcon>
           <!-- 自定义标签显示在节点名前 -->
-          <div v-if="customTags.length > 0" class="flex shrink-0 flex-wrap gap-1 items-center">
+          <div v-if="customTags.length > 0" class="flex shrink-0 flex-wrap gap-1 items-center has-tags">
             <NTag
               v-for="(tag, index) in customTags"
               :key="index"
@@ -297,7 +297,7 @@ const customTags = computed(() => {
           </div>
 
           <!-- 运行时间 -->
-          <div class="flex-between">
+          <div class="uptime-row flex-between">
             <NText :depth="3" class="text-[13px]">
               运行时间
             </NText>
@@ -332,3 +332,25 @@ const customTags = computed(() => {
     </NModal>
   </div>
 </template>
+
+<style scoped lang="scss">
+.n-card .shrink-0.n-icon ~ .flex.shrink-0.has-tags {
+  position: absolute;
+  backdrop-filter: blur(8px);
+  padding: 1rem 22px;
+  left: 1px;
+  right: 1px;
+  bottom: 1px;
+  z-index: 9;
+  transform: translateY(10%);
+  opacity: 0;
+  transition: 200ms;
+}
+.n-card:hover .shrink-0.n-icon ~ .flex.shrink-0.has-tags {
+  transform: translateY(0);
+  opacity: 1;
+}
+.n-card:has(.has-tags):hover .flex-between:last-child {
+  opacity: 0.3;
+}
+</style>
