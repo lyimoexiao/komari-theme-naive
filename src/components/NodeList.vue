@@ -563,13 +563,13 @@ const columnTitles: Record<string, string> = {
 }
 
 :global(html.dark) .list-with-background {
-  background-color: rgba(16, 16, 20, 0.7) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 
   :deep(.n-list-item) {
-    background-color: rgba(16, 16, 20, 0.5) !important;
+    background-color: rgba(24, 24, 28, 0.6) !important;
 
     &:hover {
-      background-color: rgba(16, 16, 20, 0.7) !important;
+      background-color: rgba(24, 24, 28, 0.8) !important;
     }
   }
 }

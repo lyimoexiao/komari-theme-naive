@@ -422,10 +422,10 @@ const cardStyle = computed(() => {
 }
 
 :global(html.dark) .card-with-background {
-  background-color: rgba(16, 16, 20, 0.7) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 
   &:hover {
-    background-color: rgba(16, 16, 20, 0.85) !important;
+    background-color: rgba(24, 24, 28, 0.95) !important;
   }
 }
 </style>

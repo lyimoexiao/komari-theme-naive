@@ -250,6 +250,6 @@ const hasBackgroundBlur = computed(() => {
 }
 
 :global(html.dark) .card-with-background {
-  background-color: rgba(16, 16, 20, 0.7) !important;
+  background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>
