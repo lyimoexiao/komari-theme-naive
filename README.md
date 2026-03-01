@@ -1,4 +1,4 @@
-<h3 align="center">🌸 Komari Naive </h3>
+<h3 align="center">Komari Naive</h3>
 <p align="center">基于 Vue 3 + Vite + UnoCSS + Naive UI 构建的 Komari Monitor 主题</p>
 
 <p align="center">
@@ -19,7 +19,7 @@
 
 ---
 
-## ✨ 特性
+## 特性
 
 - 🎨 **现代化设计** - 基于 Naive UI 组件库，界面简洁优雅
 - 🚀 **高性能** - Vite 7 构建，秒级热更新
@@ -29,9 +29,9 @@
 - 🎯 **类型安全** - 全面使用 TypeScript，开发体验更佳
 - 🛠️ **开发友好** - 完善的代码规范和工具链
 
-## 📦 安装使用
+## 安装使用
 
-### 方式一：从 Release 下载（推荐）
+### 方式一：从 Release 下载
 
 1. 从 [Release 页面](https://github.com/lyimoexiao/komari-theme-naive/releases) 下载最新的 `komari-theme-naive-build-*.zip` 文件
 2. 登录 Komari Monitor 后，点击 `设置` → `主题管理`
@@ -54,14 +54,14 @@ pnpm build
 # 构建产物在 dist/ 目录，打包后上传即可
 ```
 
-## 💻 环境要求
+## 环境要求
 
 | 工具      | 版本要求              |
 | --------- | --------------------- |
 | Node.js   | `^20.19.0` 或 `>=22.12.0` |
 | pnpm      | `^10.28.2`            |
 
-## 🔧 开发指南
+## 开发指南
 
 ```bash
 # 安装依赖
@@ -80,7 +80,7 @@ pnpm lint
 pnpm format
 ```
 
-## 🏗️ 构建命令
+## 构建命令
 
 ```bash
 # 类型检查 + 生产构建
@@ -93,7 +93,7 @@ pnpm preview
 pnpm build:zip
 ```
 
-## 🛠️ 技术栈
+## 技术栈
 
 | 类别       | 技术                                       |
 | ---------- | ------------------------------------------ |
@@ -107,7 +107,7 @@ pnpm build:zip
 | 代码规范   | ESLint (@antfu/eslint-config) + oxlint     |
 | 类型系统   | TypeScript 5                               |
 
-## 📁 项目结构
+## 项目结构
 
 ```
 komari-theme-naive/
@@ -123,7 +123,7 @@ komari-theme-naive/
 └── vite.config.ts        # Vite 配置
 ```
 
-## 🤝 贡献指南
+## 贡献指南
 
 欢迎提交 Issue 和 Pull Request！
 
@@ -133,7 +133,7 @@ komari-theme-naive/
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 开启一个 Pull Request
 
-## 📄 参考项目
+## 参考项目
 
 - [Komari](https://github.com/komari-monitor/komari) - 原始监控系统
 - [Komari Next](https://github.com/tonyliuzj/komari-next) - 参考实现
@@ -142,7 +142,7 @@ komari-theme-naive/
 - [Naive UI](https://www.naiveui.com/) - Vue 3 组件库
 - [UnoCSS](https://unocss.dev/) - 即时按需原子 CSS 引擎
 
-## 📝 License
+## License
 
 [MIT License](./LICENSE)
 
