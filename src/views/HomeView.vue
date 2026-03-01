@@ -153,6 +153,18 @@ const searchInputStyle = computed(() => {
   }
   return {}
 })
+
+// RadioButton 样式
+const radioButtonStyle = computed(() => {
+  if (appStore.backgroundEnabled && appStore.backgroundBlur > 0) {
+    return {
+      '--n-color': `${themeVars.value.cardColor}cc`, // 80% opacity
+      '--n-color-active': themeVars.value.primaryColor,
+      'backdropFilter': `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
 </script>
 
 <template>
@@ -178,10 +190,10 @@ const searchInputStyle = computed(() => {
           </template>
         </NInput>
         <NRadioGroup v-model:value="appStore.nodeViewMode" class="view-selector">
-          <NRadioButton value="card" class="view-selector-item">
+          <NRadioButton value="card" class="view-selector-item" :style="radioButtonStyle">
             <div class="i-icon-park-outline-view-grid-card" />
           </NRadioButton>
-          <NRadioButton value="list" class="view-selector-item">
+          <NRadioButton value="list" class="view-selector-item" :style="radioButtonStyle">
             <div class="i-icon-park-outline-view-list" />
           </NRadioButton>
         </NRadioGroup>
