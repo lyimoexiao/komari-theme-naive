@@ -123,7 +123,7 @@ const osConfigs: OSConfig[] = [
   },
   {
     name: 'fnOS',
-    image: '/assets/logo/os-fnos.ico',
+    image: '/images/logo/os-fnos.ico',
     keywords: ['fnos', 'fnnas'],
   },
   {
