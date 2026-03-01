@@ -148,4 +148,3 @@ komari-theme-naive/
 
 ---
 
-<p align="center">Made with 💖 by 小洛</p>
