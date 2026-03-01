@@ -567,7 +567,7 @@ const blurClass = computed(() => {
               selectedTaskIds.includes(task.id)
                 ? ''
                 : 'opacity-50',
-              { 'glass-task-enabled': hasBackgroundBlur },
+              hasBackgroundBlur ? 'glass-task-enabled' : 'task-card-default',
               blurClass,
             ]"
             :onmouseover="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = task.color)"
@@ -674,6 +674,12 @@ const blurClass = computed(() => {
 </template>
 
 <style scoped>
+/* 默认任务卡片样式 */
+.task-card-default {
+  background-color: var(--n-color);
+  border-radius: var(--n-border-radius);
+}
+
 /* 毛玻璃任务卡片样式 */
 .glass-task-enabled {
   background-color: rgba(255, 255, 255, 0.7);

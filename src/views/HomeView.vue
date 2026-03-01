@@ -248,16 +248,13 @@ const blurClass = computed(() => {
   justify-content: center;
 }
 
-/* 毛玻璃搜索框样式 */
-.glass-input-enabled :deep(.n-input__input-el),
-.glass-input-enabled :deep(.n-input__border),
-.glass-input-enabled :deep(.n-input__state-border) {
+/* 毛玻璃搜索框样式 - 只设置 wrapper 背景 */
+.glass-input-enabled {
   background-color: rgba(255, 255, 255, 0.7) !important;
+  border-radius: var(--n-border-radius);
 }
 
-:global(html.dark) .glass-input-enabled :deep(.n-input__input-el),
-:global(html.dark) .glass-input-enabled :deep(.n-input__border),
-:global(html.dark) .glass-input-enabled :deep(.n-input__state-border) {
+:global(html.dark) .glass-input-enabled {
   background-color: rgba(24, 24, 28, 0.85) !important;
 }
 
