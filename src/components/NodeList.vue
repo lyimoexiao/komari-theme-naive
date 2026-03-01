@@ -431,7 +431,7 @@ const columnTitles: Record<string, string> = {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .node-list-wrapper {
   overflow-x: auto;
   min-width: 0;
