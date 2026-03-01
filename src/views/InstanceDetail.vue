@@ -35,6 +35,19 @@ const data = computed(() => {
   return nodesStore.nodes.find(node => node.uuid === route.params.id)
 })
 
+// 是否启用模糊背景
+const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
+
+// 卡片样式
+const cardStyle = computed(() => {
+  if (hasBackgroundBlur.value) {
+    return {
+      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
+
 /** 信息项配置 */
 interface InfoItem {
   label: string
@@ -107,7 +120,7 @@ const storageInfo = computed<InfoItem[]>(() => [
       <!-- 实例信息卡片 -->
       <div class="p-4 gap-4 grid grid-cols-1 lg:grid-cols-2">
         <!-- 硬件信息 -->
-        <NCard title="硬件信息" size="small">
+        <NCard title="硬件信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in hardwareInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -124,7 +137,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 系统信息 -->
-        <NCard title="系统信息" size="small">
+        <NCard title="系统信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in systemInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -146,7 +159,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 存储信息 -->
-        <NCard title="存储信息" size="small">
+        <NCard title="存储信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-3">
             <div v-for="item in storageInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -163,7 +176,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 网络信息 -->
-        <NCard title="网络信息" size="small">
+        <NCard title="网络信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -210,3 +223,13 @@ const storageInfo = computed<InfoItem[]>(() => [
     </template>
   </div>
 </template>
+
+<style scoped>
+.card-with-background {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+:global(html.dark) .card-with-background {
+  background-color: rgba(24, 24, 28, 0.85) !important;
+}
+</style>

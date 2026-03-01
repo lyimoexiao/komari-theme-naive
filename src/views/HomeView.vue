@@ -157,7 +157,7 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
     <NodeGeneralCards />
     <NDivider class="my-0! px-4!" dashed />
     <div class="node-info p-4 flex flex-col gap-4">
-      <div class="search flex gap-2 items-center">
+      <div class="search flex gap-2 items-center" :class="{ 'search-with-background': appStore.backgroundEnabled && appStore.backgroundBlur > 0 }">
         <NInput v-model:value="searchText" placeholder="搜索节点名称、地区、系统">
           <template #prefix>
             <div class="i-icon-park-outline-search" />
@@ -213,5 +213,19 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+// 自定义背景时的搜索框样式
+.search-with-background {
+  :deep(.n-input) {
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    backdrop-filter: blur(12px);
+  }
+}
+
+:global(html.dark) .search-with-background {
+  :deep(.n-input) {
+    background-color: rgba(24, 24, 28, 0.85) !important;
+  }
 }
 </style>

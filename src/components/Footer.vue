@@ -39,10 +39,24 @@ const containerStyle = computed(() =>
 const showIcp = computed(() => appStore.icpEnabled && appStore.icpNumber)
 const showPolice = computed(() => appStore.policeEnabled && appStore.policeNumber)
 const showFiling = computed(() => showIcp.value || showPolice.value)
+
+// 是否启用模糊背景
+const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
+
+// Footer 样式
+const footerStyle = computed(() => {
+  if (hasBackgroundBlur.value) {
+    return {
+      backgroundColor: appStore.isDark ? 'rgba(24, 24, 28, 0.85)' : 'rgba(255, 255, 255, 0.7)',
+      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
 </script>
 
 <template>
-  <NLayoutFooter class="px-4 py-4 w-full">
+  <NLayoutFooter class="px-4 py-4 w-full" :style="footerStyle">
     <div
       class="flex flex-col gap-3 w-full sm:flex-row sm:gap-4 sm:items-center sm:justify-between"
       :style="containerStyle"

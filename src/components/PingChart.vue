@@ -514,6 +514,24 @@ onMounted(() => {
   }
   fetchRecords()
 })
+
+// 是否启用模糊背景
+const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
+
+// 任务卡片样式
+const taskCardBgColor = computed(() => {
+  if (hasBackgroundBlur.value) {
+    return isDark.value ? 'rgba(24, 24, 28, 0.85)' : 'rgba(255, 255, 255, 0.7)'
+  }
+  return isDark.value ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)'
+})
+
+const taskCardBlur = computed(() => {
+  if (hasBackgroundBlur.value) {
+    return `blur(${appStore.cardBlurRadius}px)`
+  }
+  return 'none'
+})
 </script>
 
 <template>
@@ -553,8 +571,9 @@ onMounted(() => {
                 : 'opacity-50',
             ]"
             :style="{
-              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)',
+              backgroundColor: taskCardBgColor,
               borderRadius: themeVars.borderRadius,
+              backdropFilter: taskCardBlur,
             }"
             :onmouseover="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = task.color)"
             :onmouseout="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = 'transparent')"

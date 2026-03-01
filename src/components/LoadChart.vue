@@ -818,6 +818,19 @@ watch(isRealtime, (realtime) => {
   }
 }, { immediate: true })
 
+// 是否启用模糊背景
+const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
+
+// 卡片样式
+const cardStyle = computed(() => {
+  if (hasBackgroundBlur.value) {
+    return {
+      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
+
 // ==================== 生命周期 ====================
 
 watch(selectedView, () => {
@@ -863,7 +876,7 @@ onMounted(() => {
       <!-- 图表网格 -->
       <div v-else class="gap-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         <!-- CPU 卡片 -->
-        <NCard size="small" class="chart-card">
+        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">CPU</span>
@@ -880,7 +893,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 内存卡片 -->
-        <NCard size="small" class="chart-card">
+        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">内存</span>
@@ -905,7 +918,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 磁盘卡片 -->
-        <NCard size="small" class="chart-card">
+        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">磁盘</span>
@@ -930,7 +943,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 网络卡片 -->
-        <NCard size="small" class="chart-card">
+        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">网络</span>
@@ -957,7 +970,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 连接数卡片 -->
-        <NCard size="small" class="chart-card">
+        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">连接</span>
@@ -976,7 +989,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 进程卡片 -->
-        <NCard size="small" class="chart-card">
+        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">进程</span>
@@ -1000,5 +1013,13 @@ onMounted(() => {
   --n-padding-left: 8px;
   --n-padding-right: 8px;
   --n-padding-top: 8px;
+}
+
+.card-with-background {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+:global(html.dark) .card-with-background {
+  background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>
