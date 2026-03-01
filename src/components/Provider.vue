@@ -123,6 +123,21 @@ watch(
   },
   { immediate: true },
 )
+
+// 同步暗色模式到 html.dark 类，供 CSS 选择器使用
+watch(
+  isDark,
+  (dark) => {
+    const root = document.documentElement
+    if (dark) {
+      root.classList.add('dark')
+    }
+    else {
+      root.classList.remove('dark')
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
