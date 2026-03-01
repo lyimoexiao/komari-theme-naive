@@ -414,6 +414,7 @@ const cardBlurClass = computed(() => {
 
 // 亮色模式高对比度样式
 .light-card-contrast {
+  background-color: rgba(250, 250, 252, 1) !important;
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.12) !important;
 

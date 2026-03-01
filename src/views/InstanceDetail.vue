@@ -83,6 +83,9 @@ const storageInfo = computed<InfoItem[]>(() => [
   { label: '内存交换', value: formatBytes(data.value?.swap_total ?? 0), icon: 'i-icon-park-outline-switch' },
   { label: '硬盘', value: formatBytes(data.value?.disk_total ?? 0), icon: 'i-icon-park-outline-hard-disk' },
 ])
+
+// 是否启用亮色模式高对比度
+const lightCardContrastEnabled = computed(() => appStore.lightCardContrast && !appStore.isDark)
 </script>
 
 <template>
@@ -126,7 +129,7 @@ const storageInfo = computed<InfoItem[]>(() => [
       <!-- 实例信息卡片 -->
       <div class="p-4 gap-4 grid grid-cols-1 lg:grid-cols-2">
         <!-- 硬件信息 -->
-        <NCard title="硬件信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="硬件信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in hardwareInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -143,7 +146,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 系统信息 -->
-        <NCard title="系统信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="系统信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in systemInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -165,7 +168,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 存储信息 -->
-        <NCard title="存储信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="存储信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-3">
             <div v-for="item in storageInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -182,7 +185,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 网络信息 -->
-        <NCard title="网络信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="网络信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -230,7 +233,18 @@ const storageInfo = computed<InfoItem[]>(() => [
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
+/* 亮色模式高对比度样式 */
+.light-card-contrast {
+  background-color: rgba(250, 250, 252, 1) !important;
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12) !important;
+
+  &:hover {
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
+  }
+}
+
 /* 毛玻璃卡片样式 */
 .glass-card-enabled {
   background-color: rgba(255, 255, 255, 0.7) !important;
