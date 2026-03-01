@@ -367,6 +367,15 @@ const useAppStore = defineStore('app', () => {
     return false
   })
 
+  // 计算属性：Card 视图流量统计上下行分离颜色
+  const trafficSplitColor = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.trafficSplitColor === 'boolean') {
+      return settings.trafficSplitColor
+    }
+    return true
+  })
+
   // 计算属性：字节格式化精度配置
   const byteDecimals = computed<ByteDecimalsConfig>(() => {
     const settings = publicSettings.value?.theme_settings
@@ -558,6 +567,7 @@ const useAppStore = defineStore('app', () => {
     uptimeTagWrap,
     uptimeFormat,
     lightCardContrast,
+    trafficSplitColor,
     byteDecimals,
     alertEnabled,
     alertType,
