@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
-import { NAlert, NDivider, NEmpty, NInput, NRadioButton, NRadioGroup, NTabPane, NTabs } from 'naive-ui'
+import { NAlert, NDivider, NEmpty, NInput, NRadioButton, NRadioGroup, NTabPane, NTabs, useThemeVars } from 'naive-ui'
 import { computed, defineAsyncComponent, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
@@ -20,6 +20,9 @@ const NodeList = defineAsyncComponent(() => import('@/components/NodeList.vue'))
 
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
+
+// 获取 Naive UI 主题变量
+const themeVars = useThemeVars()
 
 const router = useRouter()
 
@@ -139,6 +142,17 @@ const nodeList = computed(() => {
 function handleNodeClick(node: typeof nodesStore.nodes[number]) {
   router.push({ name: 'instance-detail', params: { id: node.uuid } })
 }
+
+// 搜索框样式
+const searchInputStyle = computed(() => {
+  if (appStore.backgroundEnabled && appStore.backgroundBlur > 0) {
+    return {
+      '--n-color': `${themeVars.value.cardColor}cc`, // 80% opacity
+      'backdropFilter': `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
 </script>
 
 <template>
@@ -157,8 +171,8 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
     <NodeGeneralCards />
     <NDivider class="my-0! px-4!" dashed />
     <div class="node-info p-4 flex flex-col gap-4">
-      <div class="search flex gap-2 items-center" :class="{ 'search-with-background': appStore.backgroundEnabled && appStore.backgroundBlur > 0 }">
-        <NInput v-model:value="searchText" placeholder="搜索节点名称、地区、系统">
+      <div class="search flex gap-2 items-center">
+        <NInput v-model:value="searchText" placeholder="搜索节点名称、地区、系统" :style="searchInputStyle">
           <template #prefix>
             <div class="i-icon-park-outline-search" />
           </template>
@@ -213,19 +227,5 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-// 自定义背景时的搜索框样式
-.search-with-background {
-  :deep(.n-input) {
-    background-color: rgba(255, 255, 255, 0.7) !important;
-    backdrop-filter: blur(12px);
-  }
-}
-
-:global(html.dark) .search-with-background {
-  :deep(.n-input) {
-    background-color: rgba(24, 24, 28, 0.85) !important;
-  }
 }
 </style>

@@ -94,6 +94,7 @@ const listStyle = computed(() => {
   if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
     return {
       backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
     }
   }
   return {}
@@ -549,28 +550,10 @@ const columnTitles: Record<string, string> = {
   }
 }
 
-/* 自定义背景时的列表样式 */
+/* 自定义背景时的列表样式 - 使用 CSS 变量 */
 .list-with-background {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-
   :deep(.n-list-item) {
-    background-color: rgba(255, 255, 255, 0.5) !important;
-
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.7) !important;
-    }
-  }
-}
-
-:global(html.dark) .list-with-background {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-
-  :deep(.n-list-item) {
-    background-color: rgba(24, 24, 28, 0.6) !important;
-
-    &:hover {
-      background-color: rgba(24, 24, 28, 0.8) !important;
-    }
+    backdrop-filter: blur(12px);
   }
 }
 </style>

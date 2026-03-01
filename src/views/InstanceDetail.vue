@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NCard, NDivider, NEmpty, NIcon, NTabPane, NTabs, NTag, NText } from 'naive-ui'
+import { NButton, NCard, NDivider, NEmpty, NIcon, NTabPane, NTabs, NTag, NText, useThemeVars } from 'naive-ui'
 import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -17,6 +17,9 @@ const router = useRouter()
 
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
+
+// 获取 Naive UI 主题变量
+const themeVars = useThemeVars()
 
 // 进入详情页时滚动到顶部
 onMounted(() => {
@@ -43,6 +46,7 @@ const cardStyle = computed(() => {
   if (hasBackgroundBlur.value) {
     return {
       backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
     }
   }
   return {}
@@ -226,10 +230,14 @@ const storageInfo = computed<InfoItem[]>(() => [
 
 <style scoped>
 .card-with-background {
-  background-color: rgba(255, 255, 255, 0.7) !important;
+  &:hover {
+    filter: brightness(0.95);
+  }
 }
 
 :global(html.dark) .card-with-background {
-  background-color: rgba(24, 24, 28, 0.85) !important;
+  &:hover {
+    filter: brightness(1.1);
+  }
 }
 </style>

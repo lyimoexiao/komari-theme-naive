@@ -3,7 +3,7 @@ import type { RecordFormat } from '@/utils/recordHelper'
 import type { StatusRecord } from '@/utils/rpc'
 import { useIntervalFn } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { NButton, NCard, NEmpty, NSpin } from 'naive-ui'
+import { NButton, NCard, NEmpty, NSpin, useThemeVars } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
 import { useAppStore } from '@/stores/app'
@@ -19,6 +19,9 @@ const props = defineProps<{
 
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
+
+// 获取 Naive UI 主题变量
+const themeVars = useThemeVars()
 
 // 从 publicSettings 获取记录保留时间
 const maxRecordPreserveTime = computed(() => appStore.publicSettings?.record_preserve_time || 720)
@@ -826,6 +829,7 @@ const cardStyle = computed(() => {
   if (hasBackgroundBlur.value) {
     return {
       backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
     }
   }
   return {}
@@ -1016,10 +1020,14 @@ onMounted(() => {
 }
 
 .card-with-background {
-  background-color: rgba(255, 255, 255, 0.7) !important;
+  &:hover {
+    filter: brightness(0.95);
+  }
 }
 
 :global(html.dark) .card-with-background {
-  background-color: rgba(24, 24, 28, 0.85) !important;
+  &:hover {
+    filter: brightness(1.1);
+  }
 }
 </style>

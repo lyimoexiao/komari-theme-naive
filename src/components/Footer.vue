@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import type { VersionInfo } from '@/utils/api'
-import { NLayoutFooter, NText } from 'naive-ui'
+import { NLayoutFooter, NText, useThemeVars } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { getSharedApi } from '@/utils/api'
 
 const appStore = useAppStore()
 const api = getSharedApi()
+
+// 获取 Naive UI 主题变量
+const themeVars = useThemeVars()
 
 // 构建时注入的版本信息
 const buildVersion = __BUILD_VERSION__
@@ -47,7 +50,7 @@ const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.
 const footerStyle = computed(() => {
   if (hasBackgroundBlur.value) {
     return {
-      backgroundColor: appStore.isDark ? 'rgba(24, 24, 28, 0.85)' : 'rgba(255, 255, 255, 0.7)',
+      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
       backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
     }
   }

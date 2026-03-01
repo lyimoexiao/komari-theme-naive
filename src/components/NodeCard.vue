@@ -140,6 +140,7 @@ const cardStyle = computed(() => {
   if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
     return {
       backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
     }
   }
   return {}
@@ -414,18 +415,14 @@ const cardStyle = computed(() => {
 
 // 自定义背景时的卡片样式
 .card-with-background {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-
   &:hover {
-    background-color: rgba(255, 255, 255, 0.85) !important;
+    filter: brightness(0.95);
   }
 }
 
 :global(html.dark) .card-with-background {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-
   &:hover {
-    background-color: rgba(24, 24, 28, 0.95) !important;
+    filter: brightness(1.1);
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useNow } from '@vueuse/core'
-import { NCard, NText } from 'naive-ui'
+import { NCard, NText, useThemeVars } from 'naive-ui'
 import { computed } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
@@ -8,6 +8,9 @@ import { formatBytesPerSecondSplit, formatBytesSplit } from '@/utils/helper'
 
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
+
+// 获取 Naive UI 主题变量
+const themeVars = useThemeVars()
 
 // 使用 VueUse 的 useNow 自动管理定时器，每秒更新
 const now = useNow({ interval: 1000 })
@@ -53,6 +56,7 @@ const cardStyle = computed(() => {
   if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
     return {
       backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
     }
   }
   return {}
@@ -244,12 +248,15 @@ const hasBackgroundBlur = computed(() => {
   border-color: rgba(0, 0, 0, 0.12);
 }
 
-/* 自定义背景时的卡片样式 */
 .card-with-background {
-  background-color: rgba(255, 255, 255, 0.7) !important;
+  &:hover {
+    filter: brightness(0.95);
+  }
 }
 
 :global(html.dark) .card-with-background {
-  background-color: rgba(24, 24, 28, 0.85) !important;
+  &:hover {
+    filter: brightness(1.1);
+  }
 }
 </style>

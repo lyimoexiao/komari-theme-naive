@@ -521,7 +521,7 @@ const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.
 // 任务卡片样式
 const taskCardBgColor = computed(() => {
   if (hasBackgroundBlur.value) {
-    return isDark.value ? 'rgba(24, 24, 28, 0.85)' : 'rgba(255, 255, 255, 0.7)'
+    return `${themeVars.value.cardColor}cc` // 80% opacity
   }
   return isDark.value ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)'
 })
