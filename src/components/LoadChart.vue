@@ -3,7 +3,7 @@ import type { RecordFormat } from '@/utils/recordHelper'
 import type { StatusRecord } from '@/utils/rpc'
 import { useIntervalFn } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { NButton, NCard, NEmpty, NSpin, useThemeVars } from 'naive-ui'
+import { NButton, NCard, NEmpty, NSpin } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
 import { useAppStore } from '@/stores/app'
@@ -19,9 +19,6 @@ const props = defineProps<{
 
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
-
-// 获取 Naive UI 主题变量
-const themeVars = useThemeVars()
 
 // 从 publicSettings 获取记录保留时间
 const maxRecordPreserveTime = computed(() => appStore.publicSettings?.record_preserve_time || 720)
@@ -824,15 +821,20 @@ watch(isRealtime, (realtime) => {
 // 是否启用模糊背景
 const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
 
-// 卡片样式
-const cardStyle = computed(() => {
-  if (hasBackgroundBlur.value) {
-    return {
-      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
-      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
-    }
-  }
-  return {}
+// 计算模糊半径类
+const blurClass = computed(() => {
+  if (!hasBackgroundBlur.value)
+    return ''
+  const radius = appStore.cardBlurRadius
+  if (radius <= 8)
+    return 'glass-8'
+  if (radius <= 12)
+    return 'glass-12'
+  if (radius <= 16)
+    return 'glass-16'
+  if (radius <= 20)
+    return 'glass-20'
+  return `glass-${radius}`
 })
 
 // ==================== 生命周期 ====================
@@ -880,7 +882,7 @@ onMounted(() => {
       <!-- 图表网格 -->
       <div v-else class="gap-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         <!-- CPU 卡片 -->
-        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">CPU</span>
@@ -897,7 +899,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 内存卡片 -->
-        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">内存</span>
@@ -922,7 +924,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 磁盘卡片 -->
-        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">磁盘</span>
@@ -947,7 +949,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 网络卡片 -->
-        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">网络</span>
@@ -974,7 +976,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 连接数卡片 -->
-        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">连接</span>
@@ -993,7 +995,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 进程卡片 -->
-        <NCard size="small" class="chart-card" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">进程</span>
@@ -1011,7 +1013,7 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .chart-card {
   --n-padding-bottom: 8px;
   --n-padding-left: 8px;
@@ -1019,13 +1021,18 @@ onMounted(() => {
   --n-padding-top: 8px;
 }
 
-.card-with-background {
+/* 毛玻璃卡片样式 */
+.glass-card-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+
   &:hover {
     filter: brightness(0.95);
   }
 }
 
-:global(html.dark) .card-with-background {
+:global(html.dark) .glass-card-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+
   &:hover {
     filter: brightness(1.1);
   }

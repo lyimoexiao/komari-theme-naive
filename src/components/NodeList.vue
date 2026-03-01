@@ -89,15 +89,25 @@ const rowHeightStyle = computed(() => {
   return {}
 })
 
-// 计算列表样式（当启用背景时添加模糊效果）
-const listStyle = computed(() => {
-  if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
-    return {
-      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
-      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
-    }
-  }
-  return {}
+// 是否启用背景模糊
+const hasBackgroundBlur = computed(() => {
+  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
+})
+
+// 计算列表模糊半径类
+const listBlurClass = computed(() => {
+  if (!hasBackgroundBlur.value)
+    return ''
+  const radius = appStore.cardBlurRadius
+  if (radius <= 8)
+    return 'glass-8'
+  if (radius <= 12)
+    return 'glass-12'
+  if (radius <= 16)
+    return 'glass-16'
+  if (radius <= 20)
+    return 'glass-20'
+  return `glass-${radius}`
 })
 
 // 计算国旗图标路径
@@ -244,9 +254,9 @@ const columnTitles: Record<string, string> = {
       class="min-w-fit w-full"
       :class="[
         { 'light-list-contrast': appStore.lightCardContrast && !appStore.isDark },
-        { 'list-with-background': appStore.backgroundEnabled && appStore.cardBlurRadius > 0 },
+        { 'glass-list-enabled': hasBackgroundBlur },
+        listBlurClass,
       ]"
-      :style="listStyle"
     >
       <template #header>
         <div class="node-list-header" :style="gridStyle">
@@ -550,10 +560,20 @@ const columnTitles: Record<string, string> = {
   }
 }
 
-/* 自定义背景时的列表样式 - 使用 CSS 变量 */
-.list-with-background {
+/* 毛玻璃列表样式 - 使用 CSS 变量 */
+.glass-list-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+
   :deep(.n-list-item) {
-    backdrop-filter: blur(12px);
+    background-color: color-mix(in srgb, var(--n-color) 60%, transparent);
+  }
+}
+
+:global(html.dark) .glass-list-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+
+  :deep(.n-list-item) {
+    background-color: color-mix(in srgb, var(--n-color) 70%, transparent);
   }
 }
 </style>

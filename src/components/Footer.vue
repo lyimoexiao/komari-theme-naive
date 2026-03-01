@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import type { VersionInfo } from '@/utils/api'
-import { NLayoutFooter, NText, useThemeVars } from 'naive-ui'
+import { NLayoutFooter, NText } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { getSharedApi } from '@/utils/api'
 
 const appStore = useAppStore()
 const api = getSharedApi()
-
-// 获取 Naive UI 主题变量
-const themeVars = useThemeVars()
 
 // 构建时注入的版本信息
 const buildVersion = __BUILD_VERSION__
@@ -46,20 +43,28 @@ const showFiling = computed(() => showIcp.value || showPolice.value)
 // 是否启用模糊背景
 const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
 
-// Footer 样式
-const footerStyle = computed(() => {
-  if (hasBackgroundBlur.value) {
-    return {
-      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
-      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
-    }
-  }
-  return {}
+// 计算模糊半径类
+const blurClass = computed(() => {
+  if (!hasBackgroundBlur.value)
+    return ''
+  const radius = appStore.cardBlurRadius
+  if (radius <= 8)
+    return 'glass-8'
+  if (radius <= 12)
+    return 'glass-12'
+  if (radius <= 16)
+    return 'glass-16'
+  if (radius <= 20)
+    return 'glass-20'
+  return `glass-${radius}`
 })
 </script>
 
 <template>
-  <NLayoutFooter class="px-4 py-4 w-full" :style="footerStyle">
+  <NLayoutFooter
+    class="px-4 py-4 w-full"
+    :class="[{ 'glass-footer-enabled': hasBackgroundBlur }, blurClass]"
+  >
     <div
       class="flex flex-col gap-3 w-full sm:flex-row sm:gap-4 sm:items-center sm:justify-between"
       :style="containerStyle"
@@ -148,3 +153,14 @@ const footerStyle = computed(() => {
     </div>
   </NLayoutFooter>
 </template>
+
+<style scoped>
+/* 毛玻璃 Footer 样式 */
+.glass-footer-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+}
+
+:global(html.dark) .glass-footer-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+}
+</style>

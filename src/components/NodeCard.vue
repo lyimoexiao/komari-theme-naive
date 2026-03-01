@@ -135,15 +135,25 @@ const shouldShowTagsInSeparateRow = computed(() => {
   return appStore.tagsInSeparateRow && mergedTags.value.length > 0
 })
 
-// 计算卡片样式（当启用背景时添加模糊效果）
-const cardStyle = computed(() => {
-  if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
-    return {
-      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
-      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
-    }
-  }
-  return {}
+// 是否启用背景模糊
+const hasBackgroundBlur = computed(() => {
+  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
+})
+
+// 计算卡片模糊半径类
+const cardBlurClass = computed(() => {
+  if (!hasBackgroundBlur.value)
+    return ''
+  const radius = appStore.cardBlurRadius
+  if (radius <= 8)
+    return 'glass-8'
+  if (radius <= 12)
+    return 'glass-12'
+  if (radius <= 16)
+    return 'glass-16'
+  if (radius <= 20)
+    return 'glass-20'
+  return `glass-${radius}`
 })
 </script>
 
@@ -154,9 +164,9 @@ const cardStyle = computed(() => {
       class="node-card w-full cursor-pointer transition-all duration-200" :class="[
         props.node.online ? 'hover:border-primary' : 'opacity-50 pointer-events-none',
         { 'light-card-contrast': appStore.lightCardContrast && !appStore.isDark },
-        { 'card-with-background': appStore.backgroundEnabled && appStore.cardBlurRadius > 0 },
+        { 'glass-card-enabled': hasBackgroundBlur },
+        cardBlurClass,
       ]"
-      :style="cardStyle"
       @click="emit('click')"
     >
       <template #header>
@@ -413,14 +423,18 @@ const cardStyle = computed(() => {
   }
 }
 
-// 自定义背景时的卡片样式
-.card-with-background {
+// 毛玻璃卡片样式
+.glass-card-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+
   &:hover {
     filter: brightness(0.95);
   }
 }
 
-:global(html.dark) .card-with-background {
+:global(html.dark) .glass-card-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+
   &:hover {
     filter: brightness(1.1);
   }

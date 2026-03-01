@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { NButton, NEmpty, NSpin, NSwitch, NTooltip, useThemeVars } from 'naive-ui'
+import { NButton, NEmpty, NSpin, NSwitch, NTooltip } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
 import { useAppStore } from '@/stores/app'
@@ -13,12 +13,9 @@ const props = defineProps<{
 }>()
 
 const appStore = useAppStore()
-const themeVars = useThemeVars()
+const isDark = computed(() => appStore.isDark)
 // 使用共享的 RPC 实例，避免重复创建连接
 const rpc = getSharedRpc()
-
-// 使用 store 中的 isDark computed
-const isDark = computed(() => appStore.isDark)
 
 // 图表主题相关颜色
 const chartThemeColors = computed(() => ({
@@ -518,19 +515,20 @@ onMounted(() => {
 // 是否启用模糊背景
 const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
 
-// 任务卡片样式
-const taskCardBgColor = computed(() => {
-  if (hasBackgroundBlur.value) {
-    return `${themeVars.value.cardColor}cc` // 80% opacity
-  }
-  return isDark.value ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.02)'
-})
-
-const taskCardBlur = computed(() => {
-  if (hasBackgroundBlur.value) {
-    return `blur(${appStore.cardBlurRadius}px)`
-  }
-  return 'none'
+// 计算模糊半径类
+const blurClass = computed(() => {
+  if (!hasBackgroundBlur.value)
+    return ''
+  const radius = appStore.cardBlurRadius
+  if (radius <= 8)
+    return 'glass-8'
+  if (radius <= 12)
+    return 'glass-12'
+  if (radius <= 16)
+    return 'glass-16'
+  if (radius <= 20)
+    return 'glass-20'
+  return `glass-${radius}`
 })
 </script>
 
@@ -569,12 +567,9 @@ const taskCardBlur = computed(() => {
               selectedTaskIds.includes(task.id)
                 ? ''
                 : 'opacity-50',
+              { 'glass-task-enabled': hasBackgroundBlur },
+              blurClass,
             ]"
-            :style="{
-              backgroundColor: taskCardBgColor,
-              borderRadius: themeVars.borderRadius,
-              backdropFilter: taskCardBlur,
-            }"
             :onmouseover="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = task.color)"
             :onmouseout="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = 'transparent')"
             @click="toggleTask(task.id)"
@@ -677,3 +672,15 @@ const taskCardBlur = computed(() => {
     </NSpin>
   </div>
 </template>
+
+<style scoped>
+/* 毛玻璃任务卡片样式 - 使用 CSS 变量 */
+.glass-task-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+  border-radius: var(--n-border-radius);
+}
+
+:global(html.dark) .glass-task-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+}
+</style>

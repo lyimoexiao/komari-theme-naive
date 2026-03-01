@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
-import { NAlert, NDivider, NEmpty, NInput, NRadioButton, NRadioGroup, NTabPane, NTabs, useThemeVars } from 'naive-ui'
+import { NAlert, NDivider, NEmpty, NInput, NRadioButton, NRadioGroup, NTabPane, NTabs } from 'naive-ui'
 import { computed, defineAsyncComponent, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
@@ -20,9 +20,6 @@ const NodeList = defineAsyncComponent(() => import('@/components/NodeList.vue'))
 
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
-
-// 获取 Naive UI 主题变量
-const themeVars = useThemeVars()
 
 const router = useRouter()
 
@@ -143,27 +140,25 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
   router.push({ name: 'instance-detail', params: { id: node.uuid } })
 }
 
-// 搜索框样式
-const searchInputStyle = computed(() => {
-  if (appStore.backgroundEnabled && appStore.backgroundBlur > 0) {
-    return {
-      '--n-color': `${themeVars.value.cardColor}cc`, // 80% opacity
-      'backdropFilter': `blur(${appStore.cardBlurRadius}px)`,
-    }
-  }
-  return {}
+// 是否启用背景模糊
+const hasBackgroundBlur = computed(() => {
+  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
 })
 
-// RadioButton 样式
-const radioButtonStyle = computed(() => {
-  if (appStore.backgroundEnabled && appStore.backgroundBlur > 0) {
-    return {
-      '--n-color': `${themeVars.value.cardColor}cc`, // 80% opacity
-      '--n-color-active': themeVars.value.primaryColor,
-      'backdropFilter': `blur(${appStore.cardBlurRadius}px)`,
-    }
-  }
-  return {}
+// 计算模糊半径类
+const blurClass = computed(() => {
+  if (!hasBackgroundBlur.value)
+    return ''
+  const radius = appStore.cardBlurRadius
+  if (radius <= 8)
+    return 'glass-8'
+  if (radius <= 12)
+    return 'glass-12'
+  if (radius <= 16)
+    return 'glass-16'
+  if (radius <= 20)
+    return 'glass-20'
+  return `glass-${radius}`
 })
 </script>
 
@@ -184,16 +179,28 @@ const radioButtonStyle = computed(() => {
     <NDivider class="my-0! px-4!" dashed />
     <div class="node-info p-4 flex flex-col gap-4">
       <div class="search flex gap-2 items-center">
-        <NInput v-model:value="searchText" placeholder="搜索节点名称、地区、系统" :style="searchInputStyle">
+        <NInput
+          v-model:value="searchText"
+          placeholder="搜索节点名称、地区、系统"
+          :class="[{ 'glass-input-enabled': hasBackgroundBlur }, blurClass]"
+        >
           <template #prefix>
             <div class="i-icon-park-outline-search" />
           </template>
         </NInput>
         <NRadioGroup v-model:value="appStore.nodeViewMode" class="view-selector">
-          <NRadioButton value="card" class="view-selector-item" :style="radioButtonStyle">
+          <NRadioButton
+            value="card"
+            class="view-selector-item"
+            :class="[{ 'glass-radio-enabled': hasBackgroundBlur }, blurClass]"
+          >
             <div class="i-icon-park-outline-view-grid-card" />
           </NRadioButton>
-          <NRadioButton value="list" class="view-selector-item" :style="radioButtonStyle">
+          <NRadioButton
+            value="list"
+            class="view-selector-item"
+            :class="[{ 'glass-radio-enabled': hasBackgroundBlur }, blurClass]"
+          >
             <div class="i-icon-park-outline-view-list" />
           </NRadioButton>
         </NRadioGroup>
@@ -239,5 +246,27 @@ const radioButtonStyle = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* 毛玻璃搜索框样式 */
+.glass-input-enabled :deep(.n-input__input-el),
+.glass-input-enabled :deep(.n-input__border),
+.glass-input-enabled :deep(.n-input__state-border) {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+}
+
+:global(html.dark) .glass-input-enabled :deep(.n-input__input-el),
+:global(html.dark) .glass-input-enabled :deep(.n-input__border),
+:global(html.dark) .glass-input-enabled :deep(.n-input__state-border) {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+}
+
+/* 毛玻璃 RadioButton 样式 */
+.glass-radio-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+}
+
+:global(html.dark) .glass-radio-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
 }
 </style>

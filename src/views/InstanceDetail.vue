@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NButton, NCard, NDivider, NEmpty, NIcon, NTabPane, NTabs, NTag, NText, useThemeVars } from 'naive-ui'
+import { NButton, NCard, NDivider, NEmpty, NIcon, NTabPane, NTabs, NTag, NText } from 'naive-ui'
 import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
@@ -17,9 +17,6 @@ const router = useRouter()
 
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
-
-// 获取 Naive UI 主题变量
-const themeVars = useThemeVars()
 
 // 进入详情页时滚动到顶部
 onMounted(() => {
@@ -41,15 +38,20 @@ const data = computed(() => {
 // 是否启用模糊背景
 const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
 
-// 卡片样式
-const cardStyle = computed(() => {
-  if (hasBackgroundBlur.value) {
-    return {
-      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
-      backgroundColor: `${themeVars.value.cardColor}cc`, // 80% opacity
-    }
-  }
-  return {}
+// 计算模糊半径类
+const blurClass = computed(() => {
+  if (!hasBackgroundBlur.value)
+    return ''
+  const radius = appStore.cardBlurRadius
+  if (radius <= 8)
+    return 'glass-8'
+  if (radius <= 12)
+    return 'glass-12'
+  if (radius <= 16)
+    return 'glass-16'
+  if (radius <= 20)
+    return 'glass-20'
+  return `glass-${radius}`
 })
 
 /** 信息项配置 */
@@ -124,7 +126,7 @@ const storageInfo = computed<InfoItem[]>(() => [
       <!-- 实例信息卡片 -->
       <div class="p-4 gap-4 grid grid-cols-1 lg:grid-cols-2">
         <!-- 硬件信息 -->
-        <NCard title="硬件信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard title="硬件信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in hardwareInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -141,7 +143,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 系统信息 -->
-        <NCard title="系统信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard title="系统信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in systemInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -163,7 +165,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 存储信息 -->
-        <NCard title="存储信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard title="存储信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-3">
             <div v-for="item in storageInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -180,7 +182,7 @@ const storageInfo = computed<InfoItem[]>(() => [
         </NCard>
 
         <!-- 网络信息 -->
-        <NCard title="网络信息" size="small" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle">
+        <NCard title="网络信息" size="small" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -229,13 +231,18 @@ const storageInfo = computed<InfoItem[]>(() => [
 </template>
 
 <style scoped>
-.card-with-background {
+/* 毛玻璃卡片样式 - 使用 CSS 变量 */
+.glass-card-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 75%, transparent) !important;
+
   &:hover {
     filter: brightness(0.95);
   }
 }
 
-:global(html.dark) .card-with-background {
+:global(html.dark) .glass-card-enabled {
+  background-color: color-mix(in srgb, var(--n-color) 80%, transparent) !important;
+
   &:hover {
     filter: brightness(1.1);
   }
