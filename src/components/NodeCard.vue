@@ -134,6 +134,16 @@ const mergedTags = computed(() => {
 const shouldShowTagsInSeparateRow = computed(() => {
   return appStore.tagsInSeparateRow && mergedTags.value.length > 0
 })
+
+// 计算卡片样式（当启用背景时添加模糊效果）
+const cardStyle = computed(() => {
+  if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
+    return {
+      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
 </script>
 
 <template>
@@ -143,7 +153,9 @@ const shouldShowTagsInSeparateRow = computed(() => {
       class="node-card w-full cursor-pointer transition-all duration-200" :class="[
         props.node.online ? 'hover:border-primary' : 'opacity-50 pointer-events-none',
         { 'light-card-contrast': appStore.lightCardContrast && !appStore.isDark },
+        { 'card-with-background': appStore.backgroundEnabled && appStore.cardBlurRadius > 0 },
       ]"
+      :style="cardStyle"
       @click="emit('click')"
     >
       <template #header>
@@ -397,6 +409,23 @@ const shouldShowTagsInSeparateRow = computed(() => {
   &:hover {
     box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
     border-color: var(--primary-color) !important;
+  }
+}
+
+// 自定义背景时的卡片样式
+.card-with-background {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.85) !important;
+  }
+}
+
+:global(html.dark) .card-with-background {
+  background-color: rgba(16, 16, 20, 0.7) !important;
+
+  &:hover {
+    background-color: rgba(16, 16, 20, 0.85) !important;
   }
 }
 </style>

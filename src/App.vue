@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import Background from './components/Background.vue'
 import Footer from './components/Footer.vue'
 import Header from './components/Header.vue'
 import LoadingCover from './components/LoadingCover.vue'
@@ -46,6 +47,7 @@ onUnmounted(() => {
 
 <template>
   <Provider>
+    <Background />
     <Transition
       enter-active-class="transition-all duration-100 ease-out"
       enter-from-class="opacity-0 backdrop-blur-0"

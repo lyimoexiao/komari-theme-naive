@@ -491,6 +491,67 @@ const useAppStore = defineStore('app', () => {
     return ''
   })
 
+  // 计算属性：自定义背景配置
+  const backgroundEnabled = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.backgroundEnabled === 'boolean') {
+      return settings.backgroundEnabled
+    }
+    return false
+  })
+
+  const backgroundType = computed<'image' | 'video'>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.backgroundType === 'string') {
+      const type = settings.backgroundType
+      if (type === 'image' || type === 'video') {
+        return type
+      }
+    }
+    return 'image'
+  })
+
+  const lightBackgroundUrl = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.lightBackgroundUrl === 'string') {
+      return settings.lightBackgroundUrl.trim()
+    }
+    return ''
+  })
+
+  const darkBackgroundUrl = computed<string>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.darkBackgroundUrl === 'string') {
+      return settings.darkBackgroundUrl.trim()
+    }
+    return ''
+  })
+
+  const backgroundBlur = computed<number>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.backgroundBlur === 'number' && settings.backgroundBlur >= 0) {
+      return settings.backgroundBlur
+    }
+    return 0
+  })
+
+  const backgroundOverlay = computed<number>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.backgroundOverlay === 'number' && settings.backgroundOverlay >= 0 && settings.backgroundOverlay <= 100) {
+      return settings.backgroundOverlay
+    }
+    return 0
+  })
+
+  // 计算属性：卡片模糊半径（当启用自定义背景时，使用更高的模糊半径）
+  const cardBlurRadius = computed<number>(() => {
+    if (backgroundEnabled.value && backgroundBlur.value > 0) {
+      // 卡片使用背景模糊半径 + 8px 的额外模糊
+      return backgroundBlur.value + 8
+    }
+    return 0
+  })
+
   // 当 publicSettings 加载后，如果 localStorage 没有保存过视图模式或值为非法值，使用默认值
   watch(publicSettings, (settings) => {
     if (settings && !isValidViewMode(storedViewMode.value)) {
@@ -508,6 +569,14 @@ const useAppStore = defineStore('app', () => {
       return prefersDark.value
     }
     return themeMode.value === 'dark'
+  })
+
+  // 计算属性：当前主题模式下的背景 URL
+  const currentBackgroundUrl = computed<string>(() => {
+    if (isDark.value) {
+      return darkBackgroundUrl.value
+    }
+    return lightBackgroundUrl.value
   })
 
   function updateThemeMode(mode?: ThemeMode) {
@@ -579,6 +648,14 @@ const useAppStore = defineStore('app', () => {
     policeEnabled,
     policeNumber,
     policeUrl,
+    backgroundEnabled,
+    backgroundType,
+    lightBackgroundUrl,
+    darkBackgroundUrl,
+    currentBackgroundUrl,
+    backgroundBlur,
+    backgroundOverlay,
+    cardBlurRadius,
     isLoggedIn,
     userInfo,
     publicSettings,

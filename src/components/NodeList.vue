@@ -89,6 +89,16 @@ const rowHeightStyle = computed(() => {
   return {}
 })
 
+// 计算列表样式（当启用背景时添加模糊效果）
+const listStyle = computed(() => {
+  if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
+    return {
+      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
+
 // 计算国旗图标路径
 function getFlagSrc(region: string): string {
   const code = getRegionCode(region)
@@ -226,7 +236,17 @@ const columnTitles: Record<string, string> = {
 
 <template>
   <div class="node-list-wrapper">
-    <NList hoverable clickable bordered class="min-w-fit w-full" :class="{ 'light-list-contrast': appStore.lightCardContrast && !appStore.isDark }">
+    <NList
+      hoverable
+      clickable
+      bordered
+      class="min-w-fit w-full"
+      :class="[
+        { 'light-list-contrast': appStore.lightCardContrast && !appStore.isDark },
+        { 'list-with-background': appStore.backgroundEnabled && appStore.cardBlurRadius > 0 },
+      ]"
+      :style="listStyle"
+    >
       <template #header>
         <div class="node-list-header" :style="gridStyle">
           <template v-for="col in columns" :key="col">
@@ -526,6 +546,31 @@ const columnTitles: Record<string, string> = {
 
   :deep(.n-list-item) {
     border-color: rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* 自定义背景时的列表样式 */
+.list-with-background {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+
+  :deep(.n-list-item) {
+    background-color: rgba(255, 255, 255, 0.5) !important;
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+}
+
+:global(html.dark) .list-with-background {
+  background-color: rgba(16, 16, 20, 0.7) !important;
+
+  :deep(.n-list-item) {
+    background-color: rgba(16, 16, 20, 0.5) !important;
+
+    &:hover {
+      background-color: rgba(16, 16, 20, 0.7) !important;
+    }
   }
 }
 </style>

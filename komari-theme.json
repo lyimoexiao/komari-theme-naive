@@ -64,7 +64,14 @@
       { "key": "icpUrl", "name": "备案跳转链接", "type": "string", "default": "https://beian.miit.gov.cn/", "help": "点击备案号跳转的链接地址" },
       { "key": "policeEnabled", "name": "显示公安备案", "type": "switch", "default": false, "help": "在页脚显示公安备案信息" },
       { "key": "policeNumber", "name": "公安备案号", "type": "string", "default": "", "help": "公安备案号（如：京公网安备 11010502000000号）" },
-      { "key": "policeUrl", "name": "公安备案跳转链接", "type": "string", "default": "", "help": "点击公安备案号跳转的链接地址，留空则不跳转" }
+      { "key": "policeUrl", "name": "公安备案跳转链接", "type": "string", "default": "", "help": "点击公安备案号跳转的链接地址，留空则不跳转" },
+      { "name": "自定义背景", "type": "title" },
+      { "key": "backgroundEnabled", "name": "启用自定义背景", "type": "switch", "default": false, "help": "启用后可设置自定义图片或视频作为页面背景" },
+      { "key": "backgroundType", "name": "背景类型", "type": "select", "default": "image", "options": "image,video", "help": "选择背景类型：图片或视频" },
+      { "key": "lightBackgroundUrl", "name": "亮色模式背景地址", "type": "string", "default": "", "help": "亮色模式下的背景图片/视频 URL" },
+      { "key": "darkBackgroundUrl", "name": "暗色模式背景地址", "type": "string", "default": "", "help": "暗色模式下的背景图片/视频 URL" },
+      { "key": "backgroundBlur", "name": "背景模糊半径", "type": "number", "default": 0, "help": "背景的高斯模糊半径（单位：px），0 表示不模糊" },
+      { "key": "backgroundOverlay", "name": "背景遮罩透明度", "type": "number", "default": 0, "help": "背景遮罩层的透明度（0-100），0 表示无遮罩，数值越大遮罩越深" }
     ]
   }
 }

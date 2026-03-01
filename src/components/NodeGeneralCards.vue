@@ -47,12 +47,27 @@ const formattedTrafficDown = computed(() => formatBytesSplit(totalTraffic.value.
 // 格式化速率（使用配置，返回分离的数值和单位）
 const formattedSpeedUp = computed(() => formatBytesPerSecondSplit(totalSpeed.value.up, appStore.byteDecimals))
 const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.value.down, appStore.byteDecimals))
+
+// 计算卡片样式（当启用背景时添加模糊效果）
+const cardStyle = computed(() => {
+  if (appStore.backgroundEnabled && appStore.cardBlurRadius > 0) {
+    return {
+      backdropFilter: `blur(${appStore.cardBlurRadius}px)`,
+    }
+  }
+  return {}
+})
+
+// 是否启用背景模糊
+const hasBackgroundBlur = computed(() => {
+  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
+})
 </script>
 
 <template>
   <div class="general-info p-2 flex flex-col gap-2 sm:p-4 sm:gap-4 lg:grid lg:grid-cols-5" :class="{ 'light-general-contrast': appStore.lightCardContrast && !appStore.isDark }">
     <!-- 当前时间 -->
-    <NCard hoverable class="sm:min-h-32" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle" content-class="h-full">
       <!-- 移动端：单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -78,7 +93,7 @@ const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.v
     </NCard>
 
     <!-- 在线节点 -->
-    <NCard hoverable class="sm:min-h-32" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle" content-class="h-full">
       <!-- 移动端：单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -112,7 +127,7 @@ const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.v
     </NCard>
 
     <!-- 点亮区域 -->
-    <NCard hoverable class="sm:min-h-32" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle" content-class="h-full">
       <!-- 移动端：单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -138,7 +153,7 @@ const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.v
     </NCard>
 
     <!-- 流量总览 -->
-    <NCard hoverable class="sm:min-h-32" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle" content-class="h-full">
       <!-- 移动端：单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -180,7 +195,7 @@ const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.v
     </NCard>
 
     <!-- 网络速率 -->
-    <NCard hoverable class="sm:min-h-32" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'card-with-background': hasBackgroundBlur }" :style="cardStyle" content-class="h-full">
       <!-- 移动端：单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -227,5 +242,14 @@ const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.v
 .light-general-contrast :deep(.n-card) {
   box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
   border-color: rgba(0, 0, 0, 0.12);
+}
+
+/* 自定义背景时的卡片样式 */
+.card-with-background {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+:global(html.dark) .card-with-background {
+  background-color: rgba(16, 16, 20, 0.7) !important;
 }
 </style>
