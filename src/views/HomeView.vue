@@ -189,18 +189,10 @@ const blurClass = computed(() => {
           </template>
         </NInput>
         <NRadioGroup v-model:value="appStore.nodeViewMode" class="view-selector">
-          <NRadioButton
-            value="card"
-            class="view-selector-item"
-            :class="[{ 'glass-radio-enabled': hasBackgroundBlur }, blurClass]"
-          >
+          <NRadioButton value="card" class="view-selector-item">
             <div class="i-icon-park-outline-view-grid-card" />
           </NRadioButton>
-          <NRadioButton
-            value="list"
-            class="view-selector-item"
-            :class="[{ 'glass-radio-enabled': hasBackgroundBlur }, blurClass]"
-          >
+          <NRadioButton value="list" class="view-selector-item">
             <div class="i-icon-park-outline-view-list" />
           </NRadioButton>
         </NRadioGroup>
@@ -248,22 +240,13 @@ const blurClass = computed(() => {
   justify-content: center;
 }
 
-/* 毛玻璃搜索框样式 - 只设置 wrapper 背景 */
+/* 毛玻璃搜索框样式 */
 .glass-input-enabled {
   background-color: rgba(255, 255, 255, 0.7) !important;
   border-radius: var(--n-border-radius);
 }
 
 html.dark .glass-input-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-}
-
-/* 毛玻璃 RadioButton 样式 */
-.glass-radio-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-}
-
-html.dark .glass-radio-enabled {
   background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>

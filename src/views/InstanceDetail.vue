@@ -247,4 +247,17 @@ html.dark .glass-card-enabled {
     filter: brightness(1.1);
   }
 }
+
+/* NTabs segment 类型背景修复 */
+:deep(.n-tabs-tab--segment) {
+  background-color: rgba(255, 255, 255, 0.9) !important;
+}
+
+html.dark :deep(.n-tabs-tab--segment) {
+  background-color: rgba(30, 30, 35, 0.95) !important;
+}
+
+:deep(.n-tabs-tab--segment.n-tabs-tab--active) {
+  background-color: var(--n-tab-color-active) !important;
+}
 </style>
