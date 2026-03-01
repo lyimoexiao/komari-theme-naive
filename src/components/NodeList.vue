@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { NodeData } from '@/stores/nodes'
-import { NButton, NIcon, NList, NListItem, NModal, NProgress, NTag, NText, NTooltip, useThemeVars } from 'naive-ui'
+import { NBadge, NButton, NIcon, NList, NListItem, NModal, NProgress, NTag, NText, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, ref } from 'vue'
 import PingChart from '@/components/PingChart.vue'
 import TrafficProgress from '@/components/TrafficProgress.vue'
@@ -226,7 +226,7 @@ const columnTitles: Record<string, string> = {
 
 <template>
   <div class="node-list-wrapper">
-    <NList hoverable clickable bordered class="min-w-fit w-full">
+    <NList hoverable clickable bordered class="min-w-fit w-full" :class="{ 'light-list-contrast': appStore.lightCardContrast && !appStore.isDark }">
       <template #header>
         <div class="node-list-header" :style="gridStyle">
           <template v-for="col in columns" :key="col">
@@ -260,10 +260,11 @@ const columnTitles: Record<string, string> = {
                   </template>
                   查看延迟图表
                 </NTooltip>
-                <NTag :type="node.online ? 'success' : 'error'" size="small">
+                <!-- 根据 listStatusStyle 配置选择显示方式 -->
+                <NTag v-if="appStore.listStatusStyle === 'tag'" :type="node.online ? 'success' : 'error'" size="small">
                   {{ node.online ? '在线' : '离线' }}
                 </NTag>
-                <!-- <NBadge :type="node.online ? 'success' : 'error'" :value="node.online ? '在线' : '离线'" /> -->
+                <NBadge v-else :type="node.online ? 'success' : 'error'" :value="node.online ? '在线' : '离线'" />
               </div>
             </div>
 
@@ -284,20 +285,25 @@ const columnTitles: Record<string, string> = {
             <!-- 标签 -->
             <div v-else-if="col === 'tags'" class="node-list-item__tags" :style="getColumnStyle('tags')">
               <div class="flex flex-wrap gap-1 items-center">
-                <NTag
-                  v-for="(tag, index) in getNodeTags(node)"
-                  :key="index"
-                  :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
-                  size="small"
-                >
-                  {{ tag.text }}
-                </NTag>
-                <!-- <NBadge
-                  v-for="(tag, index) in getNodeTags(node)"
-                  :key="index"
-                  :color="tag.color"
-                  :value="tag.text"
-                /> -->
+                <!-- 根据 listTagsStyle 配置选择显示方式 -->
+                <template v-if="appStore.listTagsStyle === 'tag'">
+                  <NTag
+                    v-for="(tag, index) in getNodeTags(node)"
+                    :key="index"
+                    :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
+                    size="small"
+                  >
+                    {{ tag.text }}
+                  </NTag>
+                </template>
+                <template v-else>
+                  <NBadge
+                    v-for="(tag, index) in getNodeTags(node)"
+                    :key="index"
+                    :color="tag.color"
+                    :value="tag.text"
+                  />
+                </template>
               </div>
             </div>
 
@@ -511,5 +517,15 @@ const columnTitles: Record<string, string> = {
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+// 亮色模式高对比度样式
+.light-list-contrast {
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
+
+  :deep(.n-list-item) {
+    border-color: rgba(0, 0, 0, 0.08);
+  }
 }
 </style>

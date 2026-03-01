@@ -293,6 +293,30 @@ const useAppStore = defineStore('app', () => {
     return ''
   })
 
+  // 计算属性：List 视图状态显示样式（tag 或 badge）
+  const listStatusStyle = computed<'tag' | 'badge'>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.listStatusStyle === 'string') {
+      const style = settings.listStatusStyle
+      if (style === 'tag' || style === 'badge') {
+        return style
+      }
+    }
+    return 'tag'
+  })
+
+  // 计算属性：List 视图标签显示样式（tag 或 badge）
+  const listTagsStyle = computed<'tag' | 'badge'>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.listTagsStyle === 'string') {
+      const style = settings.listTagsStyle
+      if (style === 'tag' || style === 'badge') {
+        return style
+      }
+    }
+    return 'tag'
+  })
+
   // 计算属性：是否显示延迟图表按钮
   const showPingChartButton = computed<boolean>(() => {
     const settings = publicSettings.value?.theme_settings
@@ -300,6 +324,24 @@ const useAppStore = defineStore('app', () => {
       return settings.showPingChartButton
     }
     return true
+  })
+
+  // 计算属性：是否将标签设置为单独一行显示
+  const tagsInSeparateRow = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.tagsInSeparateRow === 'boolean') {
+      return settings.tagsInSeparateRow
+    }
+    return false
+  })
+
+  // 计算属性：是否使用 Tag 组件包裹运行时间
+  const uptimeTagWrap = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.uptimeTagWrap === 'boolean') {
+      return settings.uptimeTagWrap
+    }
+    return false
   })
 
   // 计算属性：运行时间格式配置
@@ -314,6 +356,15 @@ const useAppStore = defineStore('app', () => {
       }
     }
     return 'day'
+  })
+
+  // 计算属性：亮色模式卡片高对比度
+  const lightCardContrast = computed<boolean>(() => {
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.lightCardContrast === 'boolean') {
+      return settings.lightCardContrast
+    }
+    return false
   })
 
   // 计算属性：字节格式化精度配置
@@ -500,8 +551,13 @@ const useAppStore = defineStore('app', () => {
     listColumnPadding,
     listColumnMargin,
     listRowHeight,
+    listStatusStyle,
+    listTagsStyle,
     showPingChartButton,
+    tagsInSeparateRow,
+    uptimeTagWrap,
     uptimeFormat,
+    lightCardContrast,
     byteDecimals,
     alertEnabled,
     alertType,

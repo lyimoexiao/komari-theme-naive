@@ -124,6 +124,16 @@ const priceTags = computed(() => {
 const customTags = computed(() => {
   return parseTags(props.node.tags).map(tag => ({ text: tag.text, color: tag.hex }))
 })
+
+// 计算合并后的标签（自定义标签 + 价格标签）
+const mergedTags = computed(() => {
+  return [...customTags.value, ...priceTags.value]
+})
+
+// 是否在单独一行显示标签
+const shouldShowTagsInSeparateRow = computed(() => {
+  return appStore.tagsInSeparateRow && mergedTags.value.length > 0
+})
 </script>
 
 <template>
@@ -132,6 +142,7 @@ const customTags = computed(() => {
       hoverable
       class="node-card w-full cursor-pointer transition-all duration-200" :class="[
         props.node.online ? 'hover:border-primary' : 'opacity-50 pointer-events-none',
+        { 'light-card-contrast': appStore.lightCardContrast && !appStore.isDark },
       ]"
       @click="emit('click')"
     >
@@ -140,8 +151,8 @@ const customTags = computed(() => {
           <NIcon class="shrink-0">
             <img :src="`/images/flags/${getRegionCode(props.node.region)}.svg`" :alt="getRegionDisplayName(props.node.region)">
           </NIcon>
-          <!-- 自定义标签显示在节点名前 -->
-          <div v-if="customTags.length > 0" class="flex shrink-0 flex-wrap gap-1 items-center has-tags">
+          <!-- 自定义标签显示在节点名前（仅当 tagsInSeparateRow 为 false 时） -->
+          <div v-if="customTags.length > 0 && !appStore.tagsInSeparateRow" class="has-tags flex shrink-0 flex-wrap gap-1 items-center">
             <NTag
               v-for="(tag, index) in customTags"
               :key="index"
@@ -302,17 +313,41 @@ const customTags = computed(() => {
               运行时间
             </NText>
             <div class="flex gap-2 items-center">
+              <!-- 当标签不在单独一行显示时，价格标签显示在运行时间行 -->
+              <template v-if="!shouldShowTagsInSeparateRow">
+                <NTag
+                  v-for="(tag, index) in priceTags"
+                  :key="index"
+                  size="small"
+                  :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
+                >
+                  {{ tag.text }}
+                </NTag>
+              </template>
+              <!-- 根据 uptimeTagWrap 配置选择显示方式 -->
+              <NTag v-if="appStore.uptimeTagWrap" size="small" :color="{ color: `#8b5cf620`, textColor: '#8b5cf6', borderColor: `#8b5cf640` }">
+                {{ formatUptime(props.node.uptime ?? 0) }}
+              </NTag>
+              <NText v-else class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                {{ formatUptime(props.node.uptime ?? 0) }}
+              </NText>
+            </div>
+          </div>
+
+          <!-- 标签单独一行显示（当 tagsInSeparateRow 为 true 时） -->
+          <div v-if="shouldShowTagsInSeparateRow" class="tags-separate-row flex-between">
+            <NText :depth="3" class="text-[13px]">
+              标签
+            </NText>
+            <div class="flex flex-wrap gap-1 items-center justify-end">
               <NTag
-                v-for="(tag, index) in priceTags"
+                v-for="(tag, index) in mergedTags"
                 :key="index"
                 size="small"
                 :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
               >
                 {{ tag.text }}
               </NTag>
-              <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                {{ formatUptime(props.node.uptime ?? 0) }}
-              </NText>
             </div>
           </div>
         </div>
@@ -352,5 +387,16 @@ const customTags = computed(() => {
 }
 .n-card:has(.has-tags):hover .flex-between:last-child {
   opacity: 0.3;
+}
+
+// 亮色模式高对比度样式
+.light-card-contrast {
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12) !important;
+
+  &:hover {
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
+    border-color: var(--primary-color) !important;
+  }
 }
 </style>

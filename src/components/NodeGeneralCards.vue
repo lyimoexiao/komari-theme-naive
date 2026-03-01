@@ -50,7 +50,7 @@ const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.v
 </script>
 
 <template>
-  <div class="general-info p-2 flex flex-col gap-2 sm:p-4 sm:gap-4 lg:grid lg:grid-cols-5">
+  <div class="general-info p-2 flex flex-col gap-2 sm:p-4 sm:gap-4 lg:grid lg:grid-cols-5" :class="{ 'light-general-contrast': appStore.lightCardContrast && !appStore.isDark }">
     <!-- 当前时间 -->
     <NCard hoverable class="sm:min-h-32" content-class="h-full">
       <!-- 移动端：单行显示 -->
@@ -222,3 +222,10 @@ const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.v
     </NCard>
   </div>
 </template>
+
+<style scoped>
+.light-general-contrast :deep(.n-card) {
+  box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+</style>

@@ -77,7 +77,7 @@ function handleButtonClick(action: string) {
 </script>
 
 <template>
-  <div class="transition-all duration-200 top-0 z-10" :class="isScrolled ? 'bg-$n-color shadow-sm backdrop-blur-md position-sticky' : 'bg-transparent'">
+  <div class="transition-all duration-200 top-0 position-sticky z-10" :class="isScrolled ? 'bg-$n-color shadow-sm backdrop-blur-md' : 'bg-transparent'">
     <div class="px-4 flex-between h-16" :style="containerStyle">
       <NFlex class="flex-center cursor-pointer" @click="router.push('/')">
         <NAvatar :src="siteFavicon" round />
