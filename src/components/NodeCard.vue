@@ -306,7 +306,7 @@ const cardBlurClass = computed(() => {
               />
               <NTooltip v-if="showTrafficProgress">
                 <template #trigger>
-                  <NText :depth="3" class="text-[11px] cursor-help" :style="{ fontFamily: appStore.numberFontFamily }">
+                  <NText :depth="3" class="text-[10px] cursor-help" :style="{ fontFamily: appStore.numberFontFamily }">
                     {{ formatBytes(trafficUsed) }} / {{ formatBytes(props.node.traffic_limit) }}
                   </NText>
                 </template>
@@ -395,7 +395,8 @@ const cardBlurClass = computed(() => {
 .n-card .shrink-0.n-icon ~ .flex.shrink-0.has-tags {
   position: absolute;
   backdrop-filter: blur(8px);
-  padding: 1rem 22px;
+  padding: 12px 22px 19px;
+  border-radius: 10px;
   left: 1px;
   right: 1px;
   bottom: 1px;
