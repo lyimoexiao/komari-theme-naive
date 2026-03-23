@@ -84,8 +84,8 @@ const sortedNodes = computed(() => {
         return dir * ((a.disk ?? 0) / (a.disk_total || 1) - (b.disk ?? 0) / (b.disk_total || 1))
       case 'traffic':
         return dir * (
-          ((a.net_total_up ?? 0) + (a.net_total_down ?? 0))
-          - ((b.net_total_up ?? 0) + (b.net_total_down ?? 0))
+          ((a.net_out ?? 0) + (a.net_in ?? 0))
+          - ((b.net_out ?? 0) + (b.net_in ?? 0))
         )
       default:
         return 0
