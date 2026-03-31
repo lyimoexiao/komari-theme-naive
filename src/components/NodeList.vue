@@ -34,6 +34,65 @@ const themeVars = useThemeVars()
 const showPingChart = ref(false)
 const selectedNode = ref<NodeData | null>(null)
 
+// 排序状态
+const sortKey = ref<string>('')
+const sortDir = ref<1 | -1>(1)
+
+function handleSort(col: string) {
+  if (sortKey.value === col) {
+    sortDir.value = sortDir.value === 1 ? -1 : 1
+  }
+  else {
+    sortKey.value = col
+    sortDir.value = 1
+  }
+}
+
+// 排序后的节点列表
+const sortedNodes = computed(() => {
+  const nodes = [...props.nodes]
+  const key = sortKey.value
+  const dir = sortDir.value
+  if (!key)
+    return nodes
+  return nodes.sort((a, b) => {
+    switch (key) {
+      case 'status':
+        return dir * ((a.online ? 1 : 0) - (b.online ? 1 : 0))
+      case 'region': {
+        const va = (a.region || '').toLowerCase()
+        const vb = (b.region || '').toLowerCase()
+        return dir * (va < vb ? -1 : va > vb ? 1 : 0)
+      }
+      case 'name': {
+        const va = (a.name || '').toLowerCase()
+        const vb = (b.name || '').toLowerCase()
+        return dir * (va < vb ? -1 : va > vb ? 1 : 0)
+      }
+      case 'uptime':
+        return dir * ((a.uptime ?? 0) - (b.uptime ?? 0))
+      case 'os': {
+        const va = (a.os || '').toLowerCase()
+        const vb = (b.os || '').toLowerCase()
+        return dir * (va < vb ? -1 : va > vb ? 1 : 0)
+      }
+      case 'cpu':
+        return dir * ((a.cpu ?? 0) - (b.cpu ?? 0))
+      case 'mem':
+        return dir * ((a.ram ?? 0) / (a.mem_total || 1) - (b.ram ?? 0) / (b.mem_total || 1))
+      case 'disk':
+        return dir * ((a.disk ?? 0) / (a.disk_total || 1) - (b.disk ?? 0) / (b.disk_total || 1))
+      case 'traffic':
+        return dir * (
+          ((a.net_out ?? 0) + (a.net_in ?? 0))
+          - ((b.net_out ?? 0) + (b.net_in ?? 0))
+        )
+      default:
+        return 0
+    }
+  })
+})
+
 // 列可见性计算
 const columns = computed(() => appStore.listViewColumns)
 
@@ -261,15 +320,20 @@ const columnTitles: Record<string, string> = {
       <template #header>
         <div class="node-list-header" :style="gridStyle">
           <template v-for="col in columns" :key="col">
-            <div :class="`node-list-header__${col}`" :style="getColumnStyle(col)">
+            <div
+              :class="`node-list-header__${col}`"
+              :style="getColumnStyle(col)"
+              class="sortable-header"
+              @click="handleSort(col)"
+            >
               <NText :depth="3" class="text-xs">
-                {{ columnTitles[col] }}
+                {{ columnTitles[col] }}{{ sortKey === col ? (sortDir === 1 ? ' ↑' : ' ↓') : '' }}
               </NText>
             </div>
           </template>
         </div>
       </template>
-      <NListItem v-for="node in props.nodes" :key="node.uuid" :class="{ 'opacity-50 pointer-events-none': !node.online }" :style="rowHeightStyle" @click="handleClick(node)">
+      <NListItem v-for="node in sortedNodes" :key="node.uuid" :class="{ 'opacity-50 pointer-events-none': !node.online }" :style="rowHeightStyle" @click="handleClick(node)">
         <div class="node-list-item" :style="gridStyle">
           <template v-for="col in columns" :key="col">
             <!-- 在线状态指示器 -->
@@ -541,6 +605,15 @@ const columnTitles: Record<string, string> = {
 .node-list-header__tags,
 .node-list-item__tags {
   min-width: 0;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+
+  &:hover :deep(.n-text) {
+    opacity: 0.75;
+  }
 }
 
 .traffic-cell {
