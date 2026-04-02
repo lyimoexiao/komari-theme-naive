@@ -40,15 +40,5 @@ __screenshots__/
 # Vite
 *.timestamp-*-*.mjs
 
-# AI Config
-.agents/
-.claude/
-.cline/
-.iflow/
-.trae/
-AGENTS.md
-CLAUDE.md
-QWEN.md
-
 # Theme build output
 komari-theme-naive-build-*.zip
