@@ -79,9 +79,9 @@ const systemInfo = computed<InfoItem[]>(() => [
 
 /** 存储信息 */
 const storageInfo = computed<InfoItem[]>(() => [
-  { label: '内存', value: formatBytes(data.value?.mem_total ?? 0), icon: 'i-icon-park-outline-memory' },
-  { label: '内存交换', value: formatBytes(data.value?.swap_total ?? 0), icon: 'i-icon-park-outline-switch' },
-  { label: '硬盘', value: formatBytes(data.value?.disk_total ?? 0), icon: 'i-icon-park-outline-hard-disk' },
+  { label: '内存', value: data.value ? `${formatBytes(data.value.ram ?? 0)} / ${formatBytes(data.value.mem_total ?? 0)}` : '-', icon: 'i-icon-park-outline-memory' },
+  { label: '内存交换', value: data.value ? `${formatBytes(data.value.swap ?? 0)} / ${formatBytes(data.value.swap_total ?? 0)}` : '-', icon: 'i-icon-park-outline-switch' },
+  { label: '硬盘', value: data.value ? `${formatBytes(data.value.disk ?? 0)} / ${formatBytes(data.value.disk_total ?? 0)}` : '-', icon: 'i-icon-park-outline-hard-disk' },
 ])
 
 // 是否启用亮色模式高对比度

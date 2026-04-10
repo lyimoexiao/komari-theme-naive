@@ -387,7 +387,16 @@ const cpuChartOption = computed(() => ({
       return html
     },
   },
-  grid: chartMargin,
+  legend: {
+    data: ['CPU', '负载'],
+    bottom: 4,
+    itemWidth: 12,
+    itemHeight: 12,
+    itemGap: 20,
+    icon: 'roundRect',
+    textStyle: { fontSize: 11, color: chartThemeColors.value.textSecondary },
+  },
+  grid: chartMarginWithLegend,
   xAxis: baseXAxisConfig.value,
   yAxis: [
     {
@@ -474,15 +483,24 @@ const memoryChartOption = computed(() => ({
         if (item.seriesName === 'RAM') {
           html += `<div style="display:flex;align-items:center">${colorDot}<span>RAM</span><span style="margin-left:auto;font-weight:600;margin-left:16px">${formatBytes(ramUsed)} (${ramPercent}%)</span></div>`
         }
-        else if (item.seriesName === 'Swap') {
-          html += `<div style="display:flex;align-items:center">${colorDot}<span>Swap</span><span style="margin-left:auto;font-weight:600;margin-left:16px">${formatBytes(swapUsed)} (${swapPercent}%)</span></div>`
+        else if (item.seriesName === 'SWAP') {
+          html += `<div style="display:flex;align-items:center">${colorDot}<span>SWAP</span><span style="margin-left:auto;font-weight:600;margin-left:16px">${formatBytes(swapUsed)} (${swapPercent}%)</span></div>`
         }
       }
       html += '</div>'
       return html
     },
   },
-  grid: chartMargin,
+  legend: {
+    data: ['RAM', 'SWAP'],
+    bottom: 4,
+    itemWidth: 12,
+    itemHeight: 12,
+    itemGap: 20,
+    icon: 'roundRect',
+    textStyle: { fontSize: 11, color: chartThemeColors.value.textSecondary },
+  },
+  grid: chartMarginWithLegend,
   xAxis: baseXAxisConfig.value,
   yAxis: {
     ...baseYAxisConfig.value,
@@ -516,7 +534,7 @@ const memoryChartOption = computed(() => ({
       },
     },
     {
-      name: 'Swap',
+      name: 'SWAP',
       type: 'line',
       data: chartData.value.map(r => r.swap ?? 0),
       smooth: 0.6,
