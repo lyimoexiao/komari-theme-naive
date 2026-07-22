@@ -166,7 +166,7 @@ const blurClass = computed(() => {
   <div class="home-view">
     <div v-if="appStore.connectionError" class="alert px-4">
       <NAlert type="error" title="RPC 服务错误" show-icon>
-        连接服务器失败，请检查网络设置或刷新页面后再试。
+        连接服务器失败，请检查网络设置<span class="whitespace-nowrap">或刷新页面后再试。</span>
       </NAlert>
     </div>
     <!-- 自定义公告 -->

@@ -533,10 +533,16 @@ const columnTitles: Record<string, string> = {
                   <template #trigger>
                     <div class="flex flex-col gap-0.5 w-full" :class="{ 'cursor-help': !isTouchDevice }" @click.stop>
                       <div class="text-[11px] flex gap-1 items-center" :style="{ fontFamily: appStore.numberFontFamily }">
-                        <NText v-if="showTrafficProgress(node)">{{ getTrafficUsedPercentage(node).toFixed(1) }}%</NText>
+                        <NText v-if="showTrafficProgress(node)">
+                          {{ getTrafficUsedPercentage(node).toFixed(1) }}%
+                        </NText>
                         <div class="flex-1" />
                         <NText :depth="3">
-                          {{ formatBytes(getTrafficUsed(node)) }} / <template v-if="showTrafficProgress(node)">{{ formatBytes(node.traffic_limit) }}</template><template v-else>∞</template>
+                          {{ formatBytes(getTrafficUsed(node)) }} / <template v-if="showTrafficProgress(node)">
+                            {{ formatBytes(node.traffic_limit) }}
+                          </template><template v-else>
+                            ∞
+                          </template>
                         </NText>
                       </div>
                       <!-- 统一使用 TrafficProgress 组件，自动根据类型选择颜色 -->

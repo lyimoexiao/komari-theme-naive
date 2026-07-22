@@ -13,12 +13,10 @@ import { NaiveUiResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
 import { defineConfig } from 'vite'
 
-import vueDevTools from 'vite-plugin-vue-devtools'
-
 // 使用 createRequire 支持 CommonJS 模块
 const require = createRequire(import.meta.url)
 const fs = require('node:fs')
-const archiver = require('archiver')
+const { ZipArchive } = require('archiver')
 
 /**
  * 获取当前 Git commit hash（短格式）
@@ -61,7 +59,7 @@ function komariThemeZip(): Plugin {
       }
 
       const output = fs.createWriteStream(outputPath)
-      const archive = archiver('zip', { zlib: { level: 9 } })
+      const archive = new ZipArchive({ zlib: { level: 9 } })
 
       return new Promise((resolve, reject) => {
         output.on('close', () => {
@@ -105,7 +103,6 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    vueDevTools(),
     UnoCSS(),
     AutoImport({
       imports: [
@@ -136,13 +133,22 @@ export default defineConfig({
   build: {
     // 调整 chunk 大小警告阈值
     chunkSizeWarningLimit: 600,
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          'vue-vendor': ['vue', 'vue-router', 'pinia'],
-          'echarts': ['echarts', 'vue-echarts'],
-          'naive-ui': ['naive-ui'],
-          'vueuse': ['@vueuse/core'],
+        manualChunks(id) {
+          if (['/node_modules/vue/', '/node_modules/vue-router/', '/node_modules/pinia/'].some(dependency => id.includes(dependency))) {
+            return 'vue-vendor'
+          }
+          if (['/node_modules/echarts/', '/node_modules/vue-echarts/'].some(dependency => id.includes(dependency))) {
+            return 'echarts'
+          }
+          if (id.includes('/node_modules/naive-ui/')) {
+            return 'naive-ui'
+          }
+          if (id.includes('/node_modules/@vueuse/core/')) {
+            return 'vueuse'
+          }
+          return undefined
         },
       },
     },
