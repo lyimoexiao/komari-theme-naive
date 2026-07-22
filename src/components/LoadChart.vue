@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { StatusRecord } from '@/types/komari'
 import type { RecordFormat } from '@/utils/recordHelper'
-import { useIntervalFn } from '@vueuse/core'
+import { useIntervalFn, usePreferredReducedMotion } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { NButton, NCard, NEmpty, NSpin } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
@@ -56,12 +56,10 @@ const chartColors = {
 const chartThemeColors = computed(() => ({
   text: isDark.value ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 0, 0, 0.85)',
   textSecondary: isDark.value ? 'rgba(255, 255, 255, 0.55)' : 'rgba(0, 0, 0, 0.55)',
-  textTertiary: isDark.value ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.35)',
   borderColor: isDark.value ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
   splitLineColor: isDark.value ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.06)',
   tooltipBg: isDark.value ? 'rgba(40, 40, 40, 0.95)' : 'rgba(255, 255, 255, 0.98)',
   tooltipShadow: isDark.value ? 'rgba(0, 0, 0, 0.4)' : 'rgba(0, 0, 0, 0.12)',
-  crosshairColor: isDark.value ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.1)',
 }))
 
 // 通用 Tooltip 配置
@@ -83,15 +81,12 @@ const baseTooltipConfig = computed(() => ({
   axisPointer: {
     type: 'cross' as const,
     crossStyle: {
-      color: chartThemeColors.value.textTertiary,
+      color: chartThemeColors.value.textSecondary,
     },
     lineStyle: {
-      color: chartThemeColors.value.crosshairColor,
+      color: chartThemeColors.value.borderColor,
       width: 1,
       type: 'dashed' as const,
-    },
-    shadowStyle: {
-      color: chartThemeColors.value.crosshairColor,
     },
   },
 }))
@@ -143,12 +138,22 @@ const selectedHours = computed(() => {
   return view?.hours
 })
 const isRealtime = computed(() => selectedView.value === '实时')
+const preferredMotion = usePreferredReducedMotion()
+
+const chartAnimationConfig = computed(() => ({
+  animation: isRealtime.value && preferredMotion.value !== 'reduce',
+  animationDuration: 300,
+  animationDurationUpdate: Math.min(1200, dataUpdateInterval.value / 2),
+  animationEasing: 'cubicOut' as const,
+  animationEasingUpdate: 'cubicInOut' as const,
+}))
 
 // 数据状态
 const remoteData = shallowRef<StatusRecord[]>([])
 const loading = ref(false)
 const isInitialLoad = ref(true) // 是否为首次加载（用于控制实时模式下的 NSpin 显示）
 const error = ref<string | null>(null)
+let latestRequestId = 0
 
 // 节点信息
 const nodeInfo = computed(() => nodesStore.nodesByUuid.get(props.uuid))
@@ -184,7 +189,7 @@ function statusToRecordFormat(records: StatusRecord[]): RecordFormat[] {
   }))
 }
 
-async function fetchRecentData() {
+async function fetchRecentData(requestId: number) {
   if (!props.uuid)
     return
 
@@ -196,22 +201,28 @@ async function fetchRecentData() {
 
   try {
     const result = await rpc.getNodeRecentStatus(props.uuid)
-    const records = result?.records || []
+    if (requestId !== latestRequestId || !isRealtime.value)
+      return
+    const records = Array.isArray(result?.records) ? [...result.records] : []
     records.sort((a, b) => dayjs(a.time).valueOf() - dayjs(b.time).valueOf())
     const maxLength = 150
     remoteData.value = records.slice(-maxLength)
   }
   catch (err) {
+    if (requestId !== latestRequestId)
+      return
     error.value = err instanceof Error ? err.message : '获取数据失败'
     remoteData.value = []
   }
   finally {
-    loading.value = false
-    isInitialLoad.value = false
+    if (requestId === latestRequestId) {
+      loading.value = false
+      isInitialLoad.value = false
+    }
   }
 }
 
-async function fetchHistoryData() {
+async function fetchHistoryData(requestId: number) {
   if (!props.uuid)
     return
 
@@ -222,7 +233,10 @@ async function fetchHistoryData() {
 
   try {
     const result = await rpc.getLoadRecords(props.uuid, hours)
-    const records = result.records
+    if (requestId !== latestRequestId || isRealtime.value)
+      return
+    const nodeRecords = result?.records?.[props.uuid]
+    const records = Array.isArray(nodeRecords) ? [...nodeRecords] : []
 
     // 按时间排序
     records.sort((a: StatusRecord, b: StatusRecord) =>
@@ -232,20 +246,24 @@ async function fetchHistoryData() {
     remoteData.value = records
   }
   catch (err) {
+    if (requestId !== latestRequestId)
+      return
     error.value = err instanceof Error ? err.message : '获取数据失败'
     remoteData.value = []
   }
   finally {
-    loading.value = false
+    if (requestId === latestRequestId)
+      loading.value = false
   }
 }
 
 async function fetchData() {
+  const requestId = ++latestRequestId
   if (isRealtime.value) {
-    await fetchRecentData()
+    await fetchRecentData(requestId)
   }
   else {
-    await fetchHistoryData()
+    await fetchHistoryData(requestId)
   }
 }
 
@@ -296,7 +314,7 @@ function formatTime(time: string, showDate: boolean): string {
   if (showDate) {
     return date.format('M/D HH:mm')
   }
-  return date.format('HH:mm')
+  return date.format(isRealtime.value ? 'HH:mm:ss' : 'HH:mm')
 }
 
 function formatTimeForTooltip(time: string, hours: number): string {
@@ -317,6 +335,7 @@ const baseXAxisConfig = computed(() => ({
     fontSize: 11,
     color: chartThemeColors.value.textSecondary,
     margin: 12,
+    hideOverlap: true,
   },
   axisLine: {
     show: true,
@@ -341,13 +360,18 @@ const baseYAxisConfig = computed(() => ({
       type: 'dashed' as const,
     },
   },
+  axisPointer: {
+    lineStyle: { opacity: 0 },
+    crossStyle: { opacity: 0 },
+    label: { show: false },
+  },
 }))
 
 // ==================== 图表配置 ====================
 
 // CPU 图表
 const cpuChartOption = computed(() => ({
-  animation: false,
+  ...chartAnimationConfig.value,
   // 全局颜色配置（确保 Tooltip 圆点颜色与线条一致）
   color: [chartColors.primary, chartColors.secondary],
   tooltip: {
@@ -385,16 +409,12 @@ const cpuChartOption = computed(() => ({
   yAxis: [
     {
       ...baseYAxisConfig.value,
-      name: 'CPU %',
-      nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 40, 0, 0] },
       min: 0,
       max: 100,
       axisLabel: { ...baseYAxisConfig.value.axisLabel, formatter: '{value}%' },
     },
     {
       ...baseYAxisConfig.value,
-      name: '负载',
-      nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 0, 0, 40] },
       min: 0,
       splitLine: { show: false },
     },
@@ -436,7 +456,7 @@ const cpuChartOption = computed(() => ({
 
 // 内存图表
 const memoryChartOption = computed(() => ({
-  animation: false,
+  ...chartAnimationConfig.value,
   color: [chartColors.primary, chartColors.secondary],
   tooltip: {
     ...baseTooltipConfig.value,
@@ -479,8 +499,6 @@ const memoryChartOption = computed(() => ({
   xAxis: baseXAxisConfig.value,
   yAxis: {
     ...baseYAxisConfig.value,
-    name: '内存',
-    nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 40, 0, 0] },
     axisLabel: {
       ...baseYAxisConfig.value.axisLabel,
       formatter: (val: number) => formatBytes(val),
@@ -490,7 +508,7 @@ const memoryChartOption = computed(() => ({
     {
       name: 'RAM',
       type: 'line',
-      data: chartData.value.map(r => r.ram ?? 0),
+      data: chartData.value.map(r => r.ram),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.primary, cap: 'round' as const },
@@ -511,7 +529,7 @@ const memoryChartOption = computed(() => ({
     {
       name: 'Swap',
       type: 'line',
-      data: chartData.value.map(r => r.swap ?? 0),
+      data: chartData.value.map(r => r.swap),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.secondary, cap: 'round' as const },
@@ -521,7 +539,7 @@ const memoryChartOption = computed(() => ({
 
 // 磁盘图表
 const diskChartOption = computed(() => ({
-  animation: false,
+  ...chartAnimationConfig.value,
   color: [chartColors.tertiary],
   tooltip: {
     ...baseTooltipConfig.value,
@@ -554,8 +572,6 @@ const diskChartOption = computed(() => ({
   xAxis: baseXAxisConfig.value,
   yAxis: {
     ...baseYAxisConfig.value,
-    name: '磁盘',
-    nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 40, 0, 0] },
     axisLabel: {
       ...baseYAxisConfig.value.axisLabel,
       formatter: (val: number) => formatBytes(val),
@@ -565,7 +581,7 @@ const diskChartOption = computed(() => ({
     {
       name: '磁盘已用',
       type: 'line',
-      data: chartData.value.map(r => r.disk ?? 0),
+      data: chartData.value.map(r => r.disk),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.tertiary, cap: 'round' as const },
@@ -588,7 +604,7 @@ const diskChartOption = computed(() => ({
 
 // 网络图表
 const networkChartOption = computed(() => ({
-  animation: false,
+  ...chartAnimationConfig.value,
   color: [chartColors.quinary, chartColors.quaternary],
   tooltip: {
     ...baseTooltipConfig.value,
@@ -629,18 +645,16 @@ const networkChartOption = computed(() => ({
   xAxis: baseXAxisConfig.value,
   yAxis: {
     ...baseYAxisConfig.value,
-    name: '速度',
-    nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 40, 0, 0] },
     axisLabel: {
       ...baseYAxisConfig.value.axisLabel,
-      formatter: (val: number) => formatBytes(val),
+      formatter: (val: number) => `${formatBytes(val)}/s`,
     },
   },
   series: [
     {
       name: '下载',
       type: 'line',
-      data: chartData.value.map(r => r.net_in ?? 0),
+      data: chartData.value.map(r => r.net_in),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.quinary, cap: 'round' as const },
@@ -648,7 +662,7 @@ const networkChartOption = computed(() => ({
     {
       name: '上传',
       type: 'line',
-      data: chartData.value.map(r => r.net_out ?? 0),
+      data: chartData.value.map(r => r.net_out),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.quaternary, cap: 'round' as const },
@@ -658,7 +672,7 @@ const networkChartOption = computed(() => ({
 
 // 连接数图表
 const connectionsChartOption = computed(() => ({
-  animation: false,
+  ...chartAnimationConfig.value,
   color: [chartColors.primary, chartColors.tertiary],
   tooltip: {
     ...baseTooltipConfig.value,
@@ -699,8 +713,6 @@ const connectionsChartOption = computed(() => ({
   xAxis: baseXAxisConfig.value,
   yAxis: {
     ...baseYAxisConfig.value,
-    name: '连接数',
-    nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 40, 0, 0] },
     min: 0,
     axisLabel: {
       ...baseYAxisConfig.value.axisLabel,
@@ -711,7 +723,7 @@ const connectionsChartOption = computed(() => ({
     {
       name: 'TCP',
       type: 'line',
-      data: chartData.value.map(r => r.connections ?? 0),
+      data: chartData.value.map(r => r.connections),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.primary, cap: 'round' as const },
@@ -719,7 +731,7 @@ const connectionsChartOption = computed(() => ({
     {
       name: 'UDP',
       type: 'line',
-      data: chartData.value.map(r => r.connections_udp ?? 0),
+      data: chartData.value.map(r => r.connections_udp),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.tertiary, cap: 'round' as const },
@@ -729,7 +741,7 @@ const connectionsChartOption = computed(() => ({
 
 // 进程数图表
 const processChartOption = computed(() => ({
-  animation: false,
+  ...chartAnimationConfig.value,
   color: [chartColors.quaternary],
   tooltip: {
     ...baseTooltipConfig.value,
@@ -759,8 +771,6 @@ const processChartOption = computed(() => ({
   xAxis: baseXAxisConfig.value,
   yAxis: {
     ...baseYAxisConfig.value,
-    name: '进程',
-    nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 40, 0, 0] },
     min: 0,
     axisLabel: {
       ...baseYAxisConfig.value.axisLabel,
@@ -771,7 +781,7 @@ const processChartOption = computed(() => ({
     {
       name: '进程数',
       type: 'line',
-      data: chartData.value.map(r => r.process ?? 0),
+      data: chartData.value.map(r => r.process),
       smooth: 0.6,
       showSymbol: false,
       lineStyle: { width: 2.5, color: chartColors.quaternary, cap: 'round' as const },
@@ -833,9 +843,10 @@ const blurClass = computed(() => {
 // ==================== 生命周期 ====================
 
 watch(selectedView, () => {
+  remoteData.value = []
   isInitialLoad.value = true // 切换视图时重置首次加载状态
   fetchData()
-})
+}, { flush: 'sync' })
 
 watch(() => props.uuid, () => {
   remoteData.value = []

@@ -151,7 +151,7 @@ export interface GetRecordsParams {
 
 export interface LoadRecordsResult {
   count: number
-  records: StatusRecord[]
+  records: Record<string, StatusRecord[]>
   from?: string
   to?: string
   load_type?: LoadType

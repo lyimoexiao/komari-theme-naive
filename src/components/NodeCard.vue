@@ -156,18 +156,35 @@ const cardBlurClass = computed(() => {
     return 'glass-20'
   return `glass-${radius}`
 })
+
+const visibleMetrics = computed(() => new Set(appStore.cardMetrics))
+
+function handleCardKeydown(event: KeyboardEvent): void {
+  if (event.key !== 'Enter' || event.target !== event.currentTarget)
+    return
+  event.preventDefault()
+  emit('click')
+}
 </script>
 
 <template>
-  <div>
+  <div
+    class="node-card-shell"
+    role="link"
+    tabindex="0"
+    :aria-label="`查看 ${props.node.name} 详情，当前${props.node.online ? '在线' : '离线'}`"
+    @keydown="handleCardKeydown"
+  >
     <NCard
       hoverable
       class="node-card w-full cursor-pointer transition-all duration-200" :class="[
-        props.node.online ? 'hover:border-primary' : 'node-card--offline',
+        `node-card--${appStore.cardSize}`,
+        props.node.online ? 'node-card--online hover:border-primary' : 'node-card--offline',
         { 'light-card-contrast': appStore.lightCardContrast && !appStore.isDark },
         { 'glass-card-enabled': hasBackgroundBlur },
         cardBlurClass,
       ]"
+      :style="{ '--offline-color': themeVars.errorColor, '--online-color': themeVars.successColor }"
       @click="emit('click')"
     >
       <template #header>
@@ -200,6 +217,9 @@ const cardBlurClass = computed(() => {
                 circle
                 size="small"
                 class="p-1.5!"
+                :aria-label="`查看 ${props.node.name} 延迟图表`"
+                @keydown.enter.stop
+                @keydown.space.stop
                 @click.stop="showPingChart = true"
               >
                 <template #icon>
@@ -215,6 +235,8 @@ const cardBlurClass = computed(() => {
           <!-- <NBadge :type="props.node.online ? 'success' : 'error'" size="small" dot /> -->
           <div
             class="online-badge"
+            role="status"
+            :aria-label="props.node.online ? '节点在线' : '节点离线'"
             :class="{ 'online-badge--online': props.node.online }"
             :style="{ backgroundColor: props.node.online ? themeVars.successColor : themeVars.errorColor }"
           >
@@ -223,191 +245,174 @@ const cardBlurClass = computed(() => {
         </div>
       </template>
       <template #default>
-        <div v-if="!props.node.online" class="node-offline-overlay" aria-hidden="true">
-          <div class="node-offline-overlay__content">
-            <div class="node-offline-overlay__header flex gap-2 min-w-0 items-center justify-center">
-              <NIcon class="shrink-0">
-                <img :src="`/images/flags/${getRegionCode(props.node.region)}.svg`" :alt="getRegionDisplayName(props.node.region)">
-              </NIcon>
-              <NText class="text-base font-semibold text-center break-all">
-                {{ props.node.name }}
+        <div class="node-card__content-wrap">
+          <div class="node-card__metrics flex flex-col gap-4">
+            <!-- 操作系统 -->
+            <div class="flex-between">
+              <NText :depth="3" class="text-[13px]">
+                操作系统
               </NText>
-            </div>
-            <NText class="text-sm text-red-500 font-medium text-center">
-              节点已离线
-            </NText>
-            <NText :depth="3" class="text-xs text-center" :style="{ fontFamily: appStore.numberFontFamily }">
-              最后在线 {{ offlineTime }}
-            </NText>
-            <div v-if="!appStore.tagsInSeparateRow && priceTags.length > 0" class="node-offline-overlay__tags flex flex-wrap gap-1 items-center justify-center">
-              <NTag
-                v-for="(tag, index) in priceTags"
-                :key="index"
-                size="small"
-                :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
-              >
-                {{ tag.text }}
-              </NTag>
-            </div>
-          </div>
-        </div>
-        <div class="flex flex-col gap-4">
-          <!-- 操作系统 -->
-          <div class="flex-between">
-            <NText :depth="3" class="text-[13px]">
-              操作系统
-            </NText>
-            <div class="flex gap-2 items-center">
-              <NIcon>
-                <img :src="getOSImage(props.node.os)" :alt="getOSName(props.node.os)">
-              </NIcon>
-              <NText class="text-[13px]">
-                {{ getOSName(props.node.os) }} / {{ props.node.arch }}
-              </NText>
-            </div>
-          </div>
-
-          <!-- 进度条区域：支持一行一列或一行两列布局 -->
-          <div class="gap-x-6 gap-y-4 grid" :class="appStore.cardProgressLayout === '1col' ? 'grid-cols-1' : 'grid-cols-2'">
-            <!-- CPU -->
-            <div class="flex flex-col gap-1.5">
-              <div class="flex-between">
-                <NText :depth="3" class="text-[13px]">
-                  CPU
-                </NText>
-                <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                  {{ (props.node.cpu ?? 0).toFixed(1) }}%
+              <div class="flex gap-2 items-center">
+                <NIcon>
+                  <img :src="getOSImage(props.node.os)" :alt="getOSName(props.node.os)">
+                </NIcon>
+                <NText class="text-[13px]">
+                  {{ getOSName(props.node.os) }} / {{ props.node.arch }}
                 </NText>
               </div>
-              <NProgress :show-indicator="false" :percentage="props.node.cpu ?? 0" :status="cpuStatus" :height="4" />
-              <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                {{ node.load.toFixed(2) ?? 0 }}, {{ node.load5.toFixed(2) ?? 0 }}, {{ node.load15.toFixed(2) ?? 0 }}
-              </NText>
             </div>
 
-            <!-- 内存 -->
-            <div class="flex flex-col gap-1.5">
-              <div class="flex-between">
-                <NText :depth="3" class="text-[13px]">
-                  内存
-                </NText>
-                <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                  {{ memPercentage.toFixed(1) }}%
-                </NText>
-              </div>
-              <NProgress :show-indicator="false" :percentage="memPercentage" :status="memStatus" :height="4" />
-              <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                {{ formatBytes(props.node.ram ?? 0) }} / {{ formatBytes(props.node.mem_total ?? 0) }}
-              </NText>
-            </div>
-
-            <!-- 硬盘 -->
-            <div class="flex flex-col gap-1.5">
-              <div class="flex-between">
-                <NText :depth="3" class="text-[13px]">
-                  硬盘
-                </NText>
-                <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                  {{ diskPercentage.toFixed(1) }}%
-                </NText>
-              </div>
-              <NProgress :show-indicator="false" :percentage="diskPercentage" :status="diskStatus" :height="4" />
-              <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                {{ formatBytes(props.node.disk ?? 0) }} / {{ formatBytes(props.node.disk_total ?? 0) }}
-              </NText>
-            </div>
-
-            <!-- 流量进度条 -->
-            <div class="flex flex-col gap-1.5">
-              <div class="flex-between">
-                <NText :depth="3" class="text-[13px]">
-                  流量
-                </NText>
-                <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                  <template v-if="showTrafficProgress">
-                    {{ trafficUsedPercentage.toFixed(1) }}%
-                  </template>
-                  <template v-else>
-                    ∞
-                  </template>
-                </NText>
-              </div>
-              <!-- 统一使用 TrafficProgress 组件，自动根据类型选择颜色 -->
-              <TrafficProgress
-                :height="4"
-                :upload="props.node.net_total_up ?? 0"
-                :download="props.node.net_total_down ?? 0"
-                :traffic-limit="props.node.traffic_limit"
-                :traffic-limit-type="(props.node.traffic_limit_type || 'sum')"
-              />
-              <NTooltip v-if="showTrafficProgress">
-                <template #trigger>
-                  <NText :depth="3" class="text-[10px] cursor-help" :style="{ fontFamily: appStore.numberFontFamily }">
-                    {{ formatBytes(trafficUsed) }} / {{ formatBytes(props.node.traffic_limit) }}
+            <!-- 进度条区域：支持一行一列或一行两列布局 -->
+            <div class="metric-grid grid" :class="appStore.cardProgressLayout === '1col' ? 'grid-cols-1' : 'grid-cols-2'">
+              <!-- CPU -->
+              <div v-if="visibleMetrics.has('cpu')" class="flex flex-col gap-1.5">
+                <div class="flex-between">
+                  <NText :depth="3" class="text-[13px]">
+                    CPU
                   </NText>
-                </template>
-                <NText class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                  <span :style="{ color: appStore.trafficSplitColor ? themeVars.successColor : themeVars.textColorBase }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span><span class="p-1" /><span :style="{ color: appStore.trafficSplitColor ? themeVars.infoColor : themeVars.textColorBase }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
+                  <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                    {{ (props.node.cpu ?? 0).toFixed(1) }}%
+                  </NText>
+                </div>
+                <NProgress :show-indicator="false" :percentage="props.node.cpu ?? 0" :status="cpuStatus" :height="4" />
+                <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                  {{ node.load.toFixed(2) ?? 0 }}, {{ node.load5.toFixed(2) ?? 0 }}, {{ node.load15.toFixed(2) ?? 0 }}
                 </NText>
-              </NTooltip>
-              <NText v-else :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                <span :style="{ color: appStore.trafficSplitColor ? themeVars.successColor : themeVars.textColor3 }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span><span class="p-1" /><span :style="{ color: appStore.trafficSplitColor ? themeVars.infoColor : themeVars.textColor3 }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
+              </div>
+
+              <!-- 内存 -->
+              <div v-if="visibleMetrics.has('memory')" class="flex flex-col gap-1.5">
+                <div class="flex-between">
+                  <NText :depth="3" class="text-[13px]">
+                    内存
+                  </NText>
+                  <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                    {{ memPercentage.toFixed(1) }}%
+                  </NText>
+                </div>
+                <NProgress :show-indicator="false" :percentage="memPercentage" :status="memStatus" :height="4" />
+                <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                  {{ formatBytes(props.node.ram ?? 0) }} / {{ formatBytes(props.node.mem_total ?? 0) }}
+                </NText>
+              </div>
+
+              <!-- 硬盘 -->
+              <div v-if="visibleMetrics.has('disk')" class="flex flex-col gap-1.5">
+                <div class="flex-between">
+                  <NText :depth="3" class="text-[13px]">
+                    硬盘
+                  </NText>
+                  <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                    {{ diskPercentage.toFixed(1) }}%
+                  </NText>
+                </div>
+                <NProgress :show-indicator="false" :percentage="diskPercentage" :status="diskStatus" :height="4" />
+                <NText :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                  {{ formatBytes(props.node.disk ?? 0) }} / {{ formatBytes(props.node.disk_total ?? 0) }}
+                </NText>
+              </div>
+
+              <!-- 流量进度条 -->
+              <div v-if="visibleMetrics.has('traffic')" class="flex flex-col gap-1.5">
+                <div class="flex-between">
+                  <NText :depth="3" class="text-[13px]">
+                    流量
+                  </NText>
+                  <NText class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                    <template v-if="showTrafficProgress">
+                      {{ trafficUsedPercentage.toFixed(1) }}%
+                    </template>
+                    <template v-else>
+                      ∞
+                    </template>
+                  </NText>
+                </div>
+                <!-- 统一使用 TrafficProgress 组件，自动根据类型选择颜色 -->
+                <TrafficProgress
+                  :height="4"
+                  :upload="props.node.net_total_up ?? 0"
+                  :download="props.node.net_total_down ?? 0"
+                  :traffic-limit="props.node.traffic_limit"
+                  :traffic-limit-type="(props.node.traffic_limit_type || 'sum')"
+                />
+                <NTooltip v-if="showTrafficProgress">
+                  <template #trigger>
+                    <NText :depth="3" class="text-[10px] cursor-help" :style="{ fontFamily: appStore.numberFontFamily }">
+                      {{ formatBytes(trafficUsed) }} / {{ formatBytes(props.node.traffic_limit) }}
+                    </NText>
+                  </template>
+                  <NText class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                    <span :style="{ color: appStore.trafficSplitColor ? themeVars.successColor : themeVars.textColorBase }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span><span class="p-1" /><span :style="{ color: appStore.trafficSplitColor ? themeVars.infoColor : themeVars.textColorBase }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
+                  </NText>
+                </NTooltip>
+                <NText v-else :depth="3" class="text-[10px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                  <span :style="{ color: appStore.trafficSplitColor ? themeVars.successColor : themeVars.textColor3 }">↑ {{ formatBytes(props.node.net_total_up ?? 0) }}</span><span class="p-1" /><span :style="{ color: appStore.trafficSplitColor ? themeVars.infoColor : themeVars.textColor3 }">↓ {{ formatBytes(props.node.net_total_down ?? 0) }}</span>
+                </NText>
+              </div>
+            </div>
+
+            <!-- 网络速率 -->
+            <div class="flex-between">
+              <NText :depth="3" class="text-[13px]">
+                网络速率
               </NText>
+              <div class="text-[13px] flex gap-1" :style="{ fontFamily: appStore.numberFontFamily }">
+                <span :style="{ color: themeVars.successColor }">↑ {{ formatBytesPerSecond(props.node.net_out ?? 0) }}</span><span class="" /><span :style="{ color: themeVars.infoColor }">↓ {{ formatBytesPerSecond(props.node.net_in ?? 0) }}</span>
+              </div>
             </div>
-          </div>
 
-          <!-- 网络速率 -->
-          <div class="flex-between">
-            <NText :depth="3" class="text-[13px]">
-              网络速率
-            </NText>
-            <div class="text-[13px] flex gap-1" :style="{ fontFamily: appStore.numberFontFamily }">
-              <span :style="{ color: themeVars.successColor }">↑ {{ formatBytesPerSecond(props.node.net_out ?? 0) }}</span><span class="" /><span :style="{ color: themeVars.infoColor }">↓ {{ formatBytesPerSecond(props.node.net_in ?? 0) }}</span>
+            <!-- 运行时间 -->
+            <div class="uptime-row flex-between">
+              <NText :depth="3" class="text-[13px]">
+                运行时间
+              </NText>
+              <div class="flex gap-2 items-center">
+                <!-- 当标签不在单独一行显示时，价格标签显示在运行时间行 -->
+                <template v-if="!shouldShowTagsInSeparateRow">
+                  <NTag
+                    v-for="(tag, index) in priceTags"
+                    :key="index"
+                    size="small"
+                    :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
+                  >
+                    {{ tag.text }}
+                  </NTag>
+                </template>
+                <!-- 根据 uptimeTagWrap 配置选择显示方式 -->
+                <NTag v-if="appStore.uptimeTagWrap" size="small" :color="{ color: `#8b5cf620`, textColor: '#8b5cf6', borderColor: `#8b5cf640` }">
+                  {{ formatUptime(props.node.uptime ?? 0) }}
+                </NTag>
+                <NText v-else class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
+                  {{ formatUptime(props.node.uptime ?? 0) }}
+                </NText>
+              </div>
             </div>
-          </div>
 
-          <!-- 运行时间 -->
-          <div class="uptime-row flex-between">
-            <NText :depth="3" class="text-[13px]">
-              运行时间
-            </NText>
-            <div class="flex gap-2 items-center">
-              <!-- 当标签不在单独一行显示时，价格标签显示在运行时间行 -->
-              <template v-if="!shouldShowTagsInSeparateRow">
+            <!-- 标签单独一行显示（当 tagsInSeparateRow 为 true 时） -->
+            <div v-if="shouldShowTagsInSeparateRow" class="tags-separate-row flex-between">
+              <NText :depth="3" class="text-[13px]">
+                标签
+              </NText>
+              <div class="flex flex-wrap gap-1 items-center justify-end">
                 <NTag
-                  v-for="(tag, index) in priceTags"
+                  v-for="(tag, index) in mergedTags"
                   :key="index"
                   size="small"
                   :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
                 >
                   {{ tag.text }}
                 </NTag>
-              </template>
-              <!-- 根据 uptimeTagWrap 配置选择显示方式 -->
-              <NTag v-if="appStore.uptimeTagWrap" size="small" :color="{ color: `#8b5cf620`, textColor: '#8b5cf6', borderColor: `#8b5cf640` }">
-                {{ formatUptime(props.node.uptime ?? 0) }}
-              </NTag>
-              <NText v-else class="text-[13px]" :style="{ fontFamily: appStore.numberFontFamily }">
-                {{ formatUptime(props.node.uptime ?? 0) }}
-              </NText>
+              </div>
             </div>
           </div>
-
-          <!-- 标签单独一行显示（当 tagsInSeparateRow 为 true 时） -->
-          <div v-if="shouldShowTagsInSeparateRow" class="tags-separate-row flex-between">
-            <NText :depth="3" class="text-[13px]">
-              标签
-            </NText>
-            <div class="flex flex-wrap gap-1 items-center justify-end">
-              <NTag
-                v-for="(tag, index) in mergedTags"
-                :key="index"
-                size="small"
-                :color="{ color: `${tag.color}20`, textColor: tag.color, borderColor: `${tag.color}40` }"
-              >
-                {{ tag.text }}
-              </NTag>
+          <div v-if="!props.node.online" class="offline-mask" :style="{ '--offline-color': themeVars.errorColor }" aria-hidden="true">
+            <div class="offline-mask__status">
+              <span class="offline-mask__dot" />
+              <span>节点已离线</span>
             </div>
+            <NText :depth="3" class="offline-mask__time text-xs" :style="{ fontFamily: appStore.numberFontFamily }">
+              最后在线 {{ offlineTime }}
+            </NText>
           </div>
         </div>
       </template>
@@ -418,11 +423,12 @@ const cardBlurClass = computed(() => {
       v-model:show="showPingChart"
       preset="card"
       :title="`${props.node.name} - 延迟监控`"
-      class="w-full sm:w-3/4"
+      :style="{ width: 'min(1100px, calc(100vw - 32px))', maxHeight: 'calc(100vh - 32px)' }"
+      content-style="overflow-y: auto;"
       :bordered="false"
       :segmented="{ content: true, footer: 'soft' }"
     >
-      <PingChart :uuid="props.node.uuid" />
+      <PingChart :uuid="props.node.uuid" display-mode="modal" />
     </NModal>
   </div>
 </template>
@@ -433,41 +439,113 @@ const cardBlurClass = computed(() => {
   overflow: hidden;
 }
 
-.node-offline-overlay {
+.node-card-shell:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 3px;
+  border-radius: var(--n-border-radius);
+}
+
+.node-card :deep(.n-card-header),
+.node-card :deep(.n-card__content) {
+  transition: padding 200ms ease;
+}
+
+.node-card--compact :deep(.n-card-header),
+.node-card--compact :deep(.n-card__content) {
+  padding: 12px 14px;
+}
+
+.node-card--spacious :deep(.n-card-header),
+.node-card--spacious :deep(.n-card__content) {
+  padding: 20px 22px;
+}
+
+.node-card--compact :deep(.n-card__content) > .flex {
+  gap: 12px;
+}
+
+.node-card--spacious :deep(.n-card__content) > .flex {
+  gap: 20px;
+}
+
+.metric-grid {
+  column-gap: 24px;
+  row-gap: 16px;
+}
+
+.node-card--compact .metric-grid {
+  column-gap: 16px;
+  row-gap: 12px;
+}
+
+.node-card--spacious .metric-grid {
+  column-gap: 32px;
+  row-gap: 20px;
+}
+
+.node-card--offline {
+  border-color: color-mix(in srgb, var(--offline-color, #e88080) 42%, var(--n-border-color)) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, #e88080 18%, transparent),
+    0 0 22px color-mix(in srgb, #e88080 18%, transparent);
+}
+
+.node-card--online:hover {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--online-color) 18%, transparent),
+    0 8px 28px color-mix(in srgb, var(--online-color) 20%, transparent) !important;
+}
+
+.node-card__content-wrap {
+  position: relative;
+}
+
+.node-card__metrics {
+  transition:
+    filter 200ms ease,
+    opacity 200ms ease;
+}
+
+.node-card--offline .node-card__metrics {
+  filter: blur(3px);
+  opacity: 0.48;
+}
+
+.offline-mask {
   position: absolute;
-  inset: 0;
+  inset: -4px;
+  display: flex;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  pointer-events: none;
-  border-radius: inherit;
-  border: 1px solid color-mix(in srgb, var(--n-border-color) 72%, transparent);
-  background-color: color-mix(in srgb, var(--n-color) 76%, transparent);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  transition: opacity 200ms ease;
-}
-
-.node-card:hover .node-offline-overlay {
-  opacity: 0;
-}
-
-.node-offline-overlay__content {
-  display: flex;
-  max-width: 100%;
   flex-direction: column;
   gap: 6px;
   align-items: center;
+  justify-content: center;
+  border-radius: var(--n-border-radius);
+  background: color-mix(in srgb, var(--n-color) 72%, transparent);
+  backdrop-filter: blur(10px) saturate(0.72);
+  -webkit-backdrop-filter: blur(10px) saturate(0.72);
 }
 
-.node-offline-overlay__header {
-  max-width: 100%;
+.offline-mask__status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--offline-color);
 }
 
-.node-offline-overlay__tags {
-  max-width: 100%;
+.offline-mask__dot {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--offline-color);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--offline-color) 60%, transparent);
+}
+
+.offline-mask__time {
+  text-align: center;
 }
 
 .n-card .shrink-0.n-icon ~ .flex.shrink-0.has-tags {
@@ -548,6 +626,16 @@ html.dark .glass-card-enabled {
   100% {
     transform: scale(2.5);
     opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .node-card__metrics {
+    transition: none;
+  }
+
+  .online-badge__wave {
+    transition: none;
+    animation: none;
   }
 }
 </style>

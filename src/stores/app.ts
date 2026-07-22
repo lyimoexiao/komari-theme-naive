@@ -9,6 +9,10 @@ type Lang = 'zh-CN' | 'en-US'
 type NodeViewMode = 'card' | 'list'
 type RpcTransportMode = 'websocket' | 'http'
 type AlertType = 'default' | 'info' | 'success' | 'warning' | 'error'
+export type CardSize = 'compact' | 'comfortable' | 'spacious'
+export type CardMetric = 'cpu' | 'memory' | 'disk' | 'traffic'
+
+const DEFAULT_CARD_METRICS: CardMetric[] = ['cpu', 'memory', 'disk', 'traffic']
 
 /** 默认的 List 视图列配置 */
 const DEFAULT_LIST_VIEW_COLUMNS = ['status', 'region', 'name', 'tags', 'uptime', 'os', 'cpu', 'mem', 'disk', 'traffic', 'rate'] as const
@@ -136,6 +140,37 @@ const useAppStore = defineStore('app', () => {
       }
     }
     return '2col'
+  })
+
+  const cardSize = computed<CardSize>(() => {
+    const value = publicSettings.value?.theme_settings?.cardSize
+    return value === 'compact' || value === 'spacious' ? value : 'comfortable'
+  })
+
+  const cardMinWidth = computed<number>(() => {
+    const value = publicSettings.value?.theme_settings?.cardMinWidth
+    return typeof value === 'number' && value >= 280 && value <= 520 ? value : 340
+  })
+
+  const cardMetrics = computed<CardMetric[]>(() => {
+    const value = publicSettings.value?.theme_settings?.cardMetrics
+    if (typeof value !== 'string')
+      return DEFAULT_CARD_METRICS
+    try {
+      const parsed: unknown = JSON.parse(value)
+      if (!Array.isArray(parsed))
+        return DEFAULT_CARD_METRICS
+      const metrics = parsed.filter((metric): metric is CardMetric => DEFAULT_CARD_METRICS.includes(metric as CardMetric))
+      return metrics.length > 0 ? [...new Set(metrics)] : DEFAULT_CARD_METRICS
+    }
+    catch {
+      return DEFAULT_CARD_METRICS
+    }
+  })
+
+  const showGeneralCards = computed<boolean>(() => {
+    const value = publicSettings.value?.theme_settings?.showGeneralCards
+    return typeof value === 'boolean' ? value : true
   })
 
   // 计算属性：数字字体配置
@@ -622,6 +657,10 @@ const useAppStore = defineStore('app', () => {
     fullWidth,
     maxPageWidth,
     cardProgressLayout,
+    cardSize,
+    cardMinWidth,
+    cardMetrics,
+    showGeneralCards,
     numberFontFamily,
     listViewColumns,
     hideSingleGroupTab,

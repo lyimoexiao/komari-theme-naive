@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useDebounceFn } from '@vueuse/core'
-import { NAlert, NDivider, NEmpty, NInput, NRadioButton, NRadioGroup, NTabPane, NTabs } from 'naive-ui'
+import { NAlert, NEmpty, NInput, NRadioButton, NRadioGroup, NTab, NTabs } from 'naive-ui'
 import { computed, defineAsyncComponent, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
@@ -52,7 +52,7 @@ watch(searchText, (value) => {
   updateDebouncedSearch(value)
 })
 
-const groups = computed(() => {
+const groupTabs = computed(() => {
   return [
     {
       tab: '全部节点',
@@ -122,11 +122,14 @@ function isNodeMatchSearch(node: typeof nodesStore.nodes[number], search: string
   return false
 }
 
-const nodeList = computed(() => {
-  // 先按分组筛选
-  let filteredNodes = appStore.nodeSelectedGroup === 'all'
+const groupNodeList = computed(() => {
+  return appStore.nodeSelectedGroup === 'all'
     ? nodesStore.nodes
     : nodesStore.nodes.filter(node => node.group === appStore.nodeSelectedGroup)
+})
+
+const nodeList = computed(() => {
+  let filteredNodes = groupNodeList.value
 
   // 再按防抖后的搜索词筛选
   if (debouncedSearchText.value.trim()) {
@@ -160,6 +163,11 @@ const blurClass = computed(() => {
     return 'glass-20'
   return `glass-${radius}`
 })
+
+const cardGridStyle = computed(() => ({
+  '--card-min-width': `${appStore.cardMinWidth}px`,
+  '--card-grid-gap': appStore.cardSize === 'compact' ? '12px' : appStore.cardSize === 'spacious' ? '20px' : '16px',
+}))
 </script>
 
 <template>
@@ -175,58 +183,54 @@ const blurClass = computed(() => {
         <MarkdownRenderer :content="appStore.alertContent" />
       </NAlert>
     </div>
-    <NodeGeneralCards />
-    <NDivider class="my-0! px-4!" dashed />
-    <div class="node-info p-4 flex flex-col gap-4">
-      <div class="search flex gap-2 items-center">
-        <NInput
-          v-model:value="searchText"
-          placeholder="搜索节点名称、地区、系统"
-          :class="[{ 'glass-input-enabled': hasBackgroundBlur }, blurClass]"
+    <NodeGeneralCards v-if="appStore.showGeneralCards" :nodes="groupNodeList" />
+    <section class="node-info p-4 flex flex-col gap-4" aria-label="节点列表">
+      <div class="node-toolbar">
+        <NTabs
+          v-if="showGroupTabs"
+          v-model:value="appStore.nodeSelectedGroup"
+          class="node-tabs"
+          type="bar"
+          :tabs-padding="0"
+          aria-label="节点分组"
         >
-          <template #prefix>
-            <div class="i-icon-park-outline-search" />
-          </template>
-        </NInput>
-        <NRadioGroup v-model:value="appStore.nodeViewMode" class="view-selector">
-          <NRadioButton value="card" class="view-selector-item">
-            <div class="i-icon-park-outline-view-grid-card" />
-          </NRadioButton>
-          <NRadioButton value="list" class="view-selector-item">
-            <div class="i-icon-park-outline-view-list" />
-          </NRadioButton>
-        </NRadioGroup>
+          <NTab v-for="group in groupTabs" :key="group.name" :name="group.name" :tab="group.tab" />
+        </NTabs>
+        <div class="toolbar-actions">
+          <NInput
+            v-model:value="searchText"
+            class="search-input"
+            placeholder="搜索节点名称、地区、系统"
+            aria-label="搜索节点名称、地区、系统"
+            :class="[{ 'glass-input-enabled': hasBackgroundBlur }, blurClass]"
+          >
+            <template #prefix>
+              <div class="i-icon-park-outline-search" />
+            </template>
+            <template #suffix>
+              <span v-if="searchText" class="text-xs text-[--n-text-color-3]">{{ nodeList.length }} 项</span>
+            </template>
+          </NInput>
+          <NRadioGroup v-model:value="appStore.nodeViewMode" class="view-selector" aria-label="节点视图模式">
+            <NRadioButton value="card" class="view-selector-item" aria-label="卡片视图">
+              <div class="i-icon-park-outline-view-grid-card" />
+            </NRadioButton>
+            <NRadioButton value="list" class="view-selector-item" aria-label="列表视图">
+              <div class="i-icon-park-outline-view-list" />
+            </NRadioButton>
+          </NRadioGroup>
+        </div>
       </div>
       <div class="nodes">
-        <NTabs v-if="showGroupTabs" v-model:value="appStore.nodeSelectedGroup" animated>
-          <NTabPane v-for="group in groups" :key="group.name" :tab="group.tab" :name="group.name">
-            <!-- Card 视图 -->
-            <div v-if="nodeList.length !== 0 && appStore.nodeViewMode === 'card'" class="gap-4 grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(340px,1fr))]">
-              <NodeCard v-for="node in nodeList" :key="node.uuid" :node="node" @click="handleNodeClick(node)" />
-            </div>
-            <!-- List 视图 -->
-            <NodeList v-else-if="nodeList.length !== 0 && appStore.nodeViewMode === 'list'" :nodes="nodeList" @click="handleNodeClick" />
-            <!-- 空状态 -->
-            <div v-else class="text-gray-500 text-center">
-              <NEmpty description="暂无节点" />
-            </div>
-          </NTabPane>
-        </NTabs>
-        <!-- 无分组时直接显示节点列表 -->
-        <template v-else>
-          <!-- Card 视图 -->
-          <div v-if="nodeList.length !== 0 && appStore.nodeViewMode === 'card'" class="gap-4 grid grid-cols-1 sm:grid-cols-[repeat(auto-fill,minmax(340px,1fr))]">
-            <NodeCard v-for="node in nodeList" :key="node.uuid" :node="node" @click="handleNodeClick(node)" />
-          </div>
-          <!-- List 视图 -->
-          <NodeList v-else-if="nodeList.length !== 0 && appStore.nodeViewMode === 'list'" :nodes="nodeList" @click="handleNodeClick" />
-          <!-- 空状态 -->
-          <div v-else class="text-gray-500 text-center">
-            <NEmpty description="暂无节点" />
-          </div>
-        </template>
+        <div v-if="nodeList.length !== 0 && appStore.nodeViewMode === 'card'" class="node-grid" :style="cardGridStyle">
+          <NodeCard v-for="node in nodeList" :key="node.uuid" :node="node" @click="handleNodeClick(node)" />
+        </div>
+        <NodeList v-else-if="nodeList.length !== 0 && appStore.nodeViewMode === 'list'" :nodes="nodeList" @click="handleNodeClick" />
+        <div v-else class="text-gray-500 text-center">
+          <NEmpty description="暂无节点" />
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -238,6 +242,106 @@ const blurClass = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.node-toolbar {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 34px;
+  align-items: center;
+  padding-bottom: 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--n-border-color) 72%, transparent);
+}
+
+.node-tabs {
+  min-width: 0;
+  flex: 1;
+  margin-right: 54px;
+  overflow: hidden;
+  transition: opacity 160ms ease;
+}
+
+.toolbar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.search-input {
+  position: absolute;
+  z-index: 2;
+  right: 100px;
+  width: 46px;
+  overflow: hidden;
+  transition:
+    width 220ms ease,
+    box-shadow 220ms ease;
+}
+
+.search-input:focus-within {
+  width: calc(100% - 100px);
+  background-color: var(--n-color) !important;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--n-color) 72%, transparent);
+}
+
+.node-toolbar:has(.search-input:focus-within) .node-tabs {
+  pointer-events: none;
+  opacity: 0;
+}
+
+.search-input :deep(input::placeholder) {
+  opacity: 0;
+  transition: opacity 140ms ease;
+}
+
+.search-input:focus-within :deep(input::placeholder) {
+  opacity: 1;
+}
+
+@media (min-width: 640px) {
+  .node-toolbar {
+    gap: 16px;
+  }
+
+  .search-input {
+    position: relative;
+    right: auto;
+    width: 46px;
+  }
+
+  .node-tabs {
+    margin-right: 0;
+  }
+
+  .search-input:focus-within {
+    width: clamp(280px, 34vw, 500px);
+  }
+
+  .search-input:focus-within :deep(input::placeholder) {
+    opacity: 1;
+  }
+
+  .node-toolbar:has(.search-input:focus-within) .node-tabs {
+    pointer-events: auto;
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-input,
+  .node-tabs,
+  .search-input :deep(input::placeholder) {
+    transition: none;
+  }
+}
+
+.node-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--card-min-width), 100%), 1fr));
+  gap: var(--card-grid-gap);
 }
 
 /* 毛玻璃搜索框样式 */

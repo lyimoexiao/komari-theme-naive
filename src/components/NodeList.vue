@@ -397,6 +397,7 @@ const columnTitles: Record<string, string> = {
                       circle
                       size="tiny"
                       class="p-1!"
+                      :aria-label="`查看 ${node.name} 延迟图表`"
                       @click.stop="openPingChart(node)"
                     >
                       <template #icon>
@@ -590,11 +591,12 @@ const columnTitles: Record<string, string> = {
       v-model:show="showPingChart"
       preset="card"
       :title="selectedNode ? `${selectedNode.name} - 延迟监控` : '延迟监控'"
-      class="w-full sm:w-3/4"
+      :style="{ width: 'min(1100px, calc(100vw - 32px))', maxHeight: 'calc(100vh - 32px)' }"
+      content-style="overflow-y: auto;"
       :bordered="false"
       :segmented="{ content: true, footer: 'soft' }"
     >
-      <PingChart v-if="selectedNode" :uuid="selectedNode.uuid" />
+      <PingChart v-if="selectedNode" :uuid="selectedNode.uuid" display-mode="modal" />
     </NModal>
   </div>
 </template>

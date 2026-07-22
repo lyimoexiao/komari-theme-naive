@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PingRecord, PingTaskSummary } from '@/types/komari'
 import dayjs from 'dayjs'
-import { NButton, NEmpty, NSpin, NSwitch, NTooltip } from 'naive-ui'
+import { NButton, NEmpty, NSpin, NSwitch, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
 import { useAppStore } from '@/stores/app'
@@ -11,9 +11,11 @@ import '@/utils/echarts' // 共享 ECharts 配置
 
 const props = defineProps<{
   uuid: string
+  displayMode?: 'page' | 'modal'
 }>()
 
 const appStore = useAppStore()
+const themeVars = useThemeVars()
 const isDark = computed(() => appStore.isDark)
 // 使用共享的 RPC 实例，避免重复创建连接
 const rpc = getSharedRpc()
@@ -106,7 +108,7 @@ const error = ref<string | null>(null)
 const selectedTaskIds = ref<number[]>([])
 const cutPeak = ref(false)
 
-const chartMargin = { top: 12, right: 24, bottom: 52, left: 56 }
+const isModal = computed(() => props.displayMode === 'modal')
 
 // ==================== 数据获取 ====================
 
@@ -345,6 +347,15 @@ const baseTooltipConfig = computed(() => ({
     lineHeight: 20,
   },
   extraCssText: 'box-shadow: none; backdrop-filter: blur(8px);',
+  position: (point: number[], _params: unknown, _element: HTMLElement, _rect: unknown, size: { contentSize: number[], viewSize: number[] }) => {
+    const gap = 12
+    const [pointX = 0, pointY = 0] = point
+    const [contentWidth = 0, contentHeight = 0] = size.contentSize
+    const [viewWidth = 0] = size.viewSize
+    const x = Math.min(pointX + gap, viewWidth - contentWidth - gap)
+    const y = Math.max(gap, pointY - contentHeight - gap)
+    return [Math.max(gap, x), y]
+  },
   axisPointer: {
     type: 'cross' as const,
     crossStyle: {
@@ -376,7 +387,7 @@ const pingChartOption = computed(() => {
       smooth: cutPeak.value ? 0.6 : 0.4,
       showSymbol: false,
       connectNulls: false,
-      lineStyle: { width: 2.5, color, cap: 'round' as const },
+      lineStyle: { width: 2, color, cap: 'round' as const },
       itemStyle: { color }, // 确保 symbol 颜色一致
     }
   })
@@ -430,6 +441,7 @@ const pingChartOption = computed(() => {
       },
     },
     legend: {
+      show: taskList.length > 1,
       type: 'scroll',
       bottom: 4,
       itemWidth: 12,
@@ -439,7 +451,12 @@ const pingChartOption = computed(() => {
       textStyle: { fontSize: 11, color: chartThemeColors.value.textSecondary },
       data: taskList.map(t => t.name),
     },
-    grid: chartMargin,
+    grid: {
+      top: 16,
+      right: 24,
+      bottom: taskList.length > 1 ? 52 : 28,
+      left: 56,
+    },
     xAxis: {
       type: 'category',
       data: data.map(d => formatTime(d.time as string, showDateInAxis.value)),
@@ -457,11 +474,14 @@ const pingChartOption = computed(() => {
     },
     yAxis: {
       type: 'value',
-      name: '延迟 (ms)',
-      nameTextStyle: { color: chartThemeColors.value.textSecondary, padding: [0, 40, 0, 0] },
-      axisLabel: { fontSize: 11, color: chartThemeColors.value.textSecondary, formatter: '{value}' },
+      axisLabel: { fontSize: 11, color: chartThemeColors.value.textSecondary, formatter: '{value} ms' },
       axisLine: { show: false },
       axisTick: { show: false },
+      axisPointer: {
+        lineStyle: { opacity: 0 },
+        crossStyle: { opacity: 0 },
+        label: { show: false },
+      },
       splitLine: {
         lineStyle: {
           color: chartThemeColors.value.splitLineColor,
@@ -516,18 +536,31 @@ const blurClass = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-4">
-    <!-- 时间选择器 -->
-    <div class="flex flex-wrap gap-2 justify-center">
-      <NButton
-        v-for="view in availableViews"
-        :key="view.label"
-        :type="selectedView === view.label ? 'primary' : 'default'"
-        size="small"
-        @click="selectedView = view.label"
-      >
-        {{ view.label }}
-      </NButton>
+  <div
+    class="ping-chart flex flex-col gap-4"
+    :class="isModal ? 'ping-chart--modal' : 'ping-chart--page'"
+    :style="{
+      '--ping-border': themeVars.borderColor,
+      '--ping-radius': themeVars.borderRadius,
+      '--ping-surface': themeVars.cardColor,
+      '--ping-surface-hover': themeVars.hoverColor,
+    }"
+  >
+    <div class="ping-toolbar">
+      <div class="text-sm font-semibold">
+        延迟监控
+      </div>
+      <div class="ping-toolbar__views flex flex-wrap gap-1.5">
+        <NButton
+          v-for="view in availableViews"
+          :key="view.label"
+          :type="selectedView === view.label ? 'primary' : 'default'"
+          size="small"
+          @click="selectedView = view.label"
+        >
+          {{ view.label }}
+        </NButton>
+      </div>
     </div>
 
     <!-- 内容区域 -->
@@ -541,20 +574,21 @@ const blurClass = computed(() => {
 
       <template v-else>
         <!-- 最新值统计卡片（可点击切换选中状态） -->
-        <div v-if="latestValues.length > 0" class="gap-3 grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))">
-          <div
+        <div v-if="latestValues.length > 0" class="ping-task-grid">
+          <button
             v-for="task in latestValues"
             :key="task.id"
-            class="p-3 border border-transparent flex gap-3 cursor-pointer select-none transition-colors items-center hover:border-solid"
+            type="button"
+            class="ping-task-card p-3 border flex gap-3 cursor-pointer select-none transition-colors items-center"
+            :aria-pressed="selectedTaskIds.includes(task.id)"
             :class="[
               selectedTaskIds.includes(task.id)
-                ? ''
-                : 'opacity-50',
+                ? 'ping-task-card--selected'
+                : 'ping-task-card--muted',
               hasBackgroundBlur ? 'glass-task-enabled' : 'task-card-default',
               blurClass,
             ]"
-            :onmouseover="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = task.color)"
-            :onmouseout="(e: MouseEvent) => ((e.currentTarget as HTMLElement).style.borderColor = 'transparent')"
+            :style="{ '--task-color': task.color }"
             @click="toggleTask(task.id)"
           >
             <div
@@ -566,7 +600,7 @@ const blurClass = computed(() => {
                 <span class="text-base font-semibold truncate">{{ task.name }}</span>
                 <NTooltip placement="top">
                   <template #trigger>
-                    <span class="i-carbon-information text-sm opacity-50 cursor-help transition-opacity hover:opacity-100" style="color: var(--n-text-color-2)" @click.stop />
+                    <span class="i-carbon-information text-sm opacity-50 cursor-help transition-opacity hover:opacity-100" style="color: var(--n-text-color-2)" tabindex="0" aria-label="查看任务统计详情" @click.stop />
                   </template>
                   <div class="text-sm gap-x-4 gap-y-1.5 grid grid-cols-2">
                     <template v-if="task.min !== undefined">
@@ -612,7 +646,7 @@ const blurClass = computed(() => {
                   </div>
                 </NTooltip>
               </div>
-              <div class="text-sm mt-1 flex gap-3 items-center" style="color: var(--n-text-color-3)">
+              <div class="ping-task-card__metrics text-sm mt-1 flex gap-3 items-center" style="color: var(--n-text-color-3)">
                 <span class="font-medium" :style="{ fontFamily: appStore.numberFontFamily, color: 'var(--n-text-color-1)' }">{{ task.latestValue !== null ? `${Math.round(task.latestValue)} ms` : '-' }}</span>
                 <span class="opacity-60">•</span>
                 <span :style="{ fontFamily: appStore.numberFontFamily }">{{ task.loss.toFixed(1) }}% 丢包</span>
@@ -622,13 +656,12 @@ const blurClass = computed(() => {
                 </template>
               </div>
             </div>
-          </div>
+          </button>
         </div>
 
-        <!-- 峰值裁剪开关 + 全选/全不选 -->
-        <div class="flex flex-wrap gap-4 items-center">
+        <div class="ping-actions flex flex-wrap gap-4 items-center justify-between">
           <div class="flex gap-2 items-center">
-            <NSwitch v-model:value="cutPeak" size="small" />
+            <NSwitch v-model:value="cutPeak" size="small" aria-label="裁剪延迟峰值" />
             <span class="text-sm">裁剪峰值</span>
             <NTooltip>
               <template #trigger>
@@ -647,9 +680,16 @@ const blurClass = computed(() => {
           </div>
         </div>
 
-        <!-- 图表 -->
-        <div class="h-80">
-          <VChart :option="pingChartOption" autoresize />
+        <div class="ping-trend-panel">
+          <div class="ping-trend-panel__header">
+            <div class="text-sm font-semibold">
+              延迟趋势
+            </div>
+            <span class="text-xs" style="color: var(--n-text-color-3)">{{ selectedTasks.length }} / {{ tasks.length }}</span>
+          </div>
+          <div class="ping-chart__canvas" role="img" :aria-label="`延迟趋势图，已选择 ${selectedTasks.length} 个监测任务`">
+            <VChart :option="pingChartOption" autoresize />
+          </div>
         </div>
       </template>
     </NSpin>
@@ -657,10 +697,163 @@ const blurClass = computed(() => {
 </template>
 
 <style scoped>
+.ping-chart {
+  --ping-control-height: 32px;
+}
+
+.ping-toolbar,
+.ping-actions,
+.ping-trend-panel {
+  border: 1px solid var(--ping-border);
+  border-radius: var(--ping-radius);
+  background: color-mix(in srgb, var(--ping-surface) 96%, var(--ping-surface-hover));
+}
+
+.ping-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.ping-toolbar__views :deep(.n-button) {
+  min-height: var(--ping-control-height);
+}
+
+.ping-task-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.ping-chart--page .ping-task-grid {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 320px));
+}
+
+.ping-task-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--n-text-color);
+  text-align: left;
+  border-color: var(--ping-border);
+  border-radius: var(--ping-radius);
+  font: inherit;
+  transition:
+    border-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.ping-task-card--selected {
+  border-color: color-mix(in srgb, var(--task-color) 38%, var(--ping-border));
+}
+
+.ping-task-card--muted {
+  opacity: 0.48;
+}
+
+.ping-task-card:hover,
+.ping-task-card:focus-visible {
+  border-color: var(--task-color) !important;
+  outline: none;
+  opacity: 1;
+}
+
+.ping-task-card__metrics {
+  flex-wrap: wrap;
+  row-gap: 4px;
+}
+
+.ping-task-card__metrics > span {
+  white-space: nowrap;
+}
+
+.ping-task-card:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--task-color) 28%, transparent);
+}
+
+.ping-actions {
+  min-height: 46px;
+  padding: 8px 12px;
+}
+
+.ping-trend-panel {
+  overflow: hidden;
+}
+
+.ping-trend-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ping-border) 70%, transparent);
+}
+
+.ping-chart__canvas {
+  height: 320px;
+  padding: 2px 4px 0;
+}
+
+.ping-chart--modal .ping-task-grid {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.ping-chart--modal .ping-chart__canvas {
+  height: min(42vh, 360px);
+  min-height: 260px;
+}
+
+@media (max-width: 640px) {
+  .ping-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ping-toolbar__views {
+    width: 100%;
+  }
+
+  .ping-task-grid,
+  .ping-chart--page .ping-task-grid,
+  .ping-chart--modal .ping-task-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ping-toolbar__views {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ping-toolbar__views :deep(.n-button) {
+    width: 100%;
+  }
+
+  .ping-actions {
+    gap: 10px;
+  }
+
+  .ping-chart__canvas {
+    height: 280px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ping-task-card {
+    transition: none;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) {
+  .ping-chart--modal .ping-task-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* 默认任务卡片样式 */
 .task-card-default {
   background-color: rgba(255, 255, 255, 0.9);
-  border-radius: var(--n-border-radius);
+  border-radius: var(--ping-radius);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
@@ -672,7 +865,7 @@ html.dark .task-card-default {
 /* 毛玻璃任务卡片样式 */
 .glass-task-enabled {
   background-color: rgba(255, 255, 255, 0.7);
-  border-radius: var(--n-border-radius);
+  border-radius: var(--ping-radius);
 }
 
 html.dark .glass-task-enabled {

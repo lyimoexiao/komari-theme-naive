@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { NodeData } from '@/stores/nodes'
 import { useNow } from '@vueuse/core'
 import { NCard, NText } from 'naive-ui'
 import { computed } from 'vue'
@@ -6,8 +7,13 @@ import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
 import { formatBytesPerSecondSplit, formatBytesSplit } from '@/utils/helper'
 
+const props = defineProps<{
+  nodes?: NodeData[]
+}>()
 const appStore = useAppStore()
 const nodesStore = useNodesStore()
+
+const summaryNodes = computed(() => props.nodes ?? nodesStore.nodes)
 
 // 使用 VueUse 的 useNow 自动管理定时器，每秒更新
 const now = useNow({ interval: 1000 })
@@ -15,7 +21,7 @@ const currentTime = computed(() => now.value.toLocaleString())
 
 /** 计算所有在线节点的实时速率总和 */
 const totalSpeed = computed(() => {
-  const onlineNodes = nodesStore.nodes.filter(node => node.online)
+  const onlineNodes = summaryNodes.value.filter(node => node.online)
   const up = onlineNodes.reduce((sum, node) => sum + (node.net_out || 0), 0)
   const down = onlineNodes.reduce((sum, node) => sum + (node.net_in || 0), 0)
   return { up, down }
@@ -23,22 +29,22 @@ const totalSpeed = computed(() => {
 
 /** 计算所有节点的累积流量总和 */
 const totalTraffic = computed(() => {
-  const up = nodesStore.nodes.reduce((sum, node) => sum + (node.net_total_up || 0), 0)
-  const down = nodesStore.nodes.reduce((sum, node) => sum + (node.net_total_down || 0), 0)
+  const up = summaryNodes.value.reduce((sum, node) => sum + (node.net_total_up || 0), 0)
+  const down = summaryNodes.value.reduce((sum, node) => sum + (node.net_total_down || 0), 0)
   return { up, down }
 })
 
 /** 在线区域数量 */
 const onlineRegionCount = computed(() => {
   return new Set(
-    nodesStore.nodes
+    summaryNodes.value
       .filter(node => node.online && node.region !== '')
       .map(node => node.region),
   ).size
 })
 
 /** 在线节点数量 */
-const onlineNodeCount = computed(() => nodesStore.nodes.filter(node => node.online).length)
+const onlineNodeCount = computed(() => summaryNodes.value.filter(node => node.online).length)
 
 // 格式化流量（使用配置，返回分离的数值和单位）
 const formattedTrafficUp = computed(() => formatBytesSplit(totalTraffic.value.up, appStore.byteDecimals))
@@ -114,7 +120,7 @@ const cardBlurClass = computed(() => {
             /
           </NText>
           <NText :depth="3" class="text-xs m-0">
-            {{ nodesStore.nodes.length }}
+            {{ summaryNodes.length }}
           </NText>
         </div>
       </div>
@@ -128,7 +134,7 @@ const cardBlurClass = computed(() => {
             /
           </NText>
           <NText :depth="3" class="text-xs m-0">
-            {{ nodesStore.nodes.length }}
+            {{ summaryNodes.length }}
           </NText>
         </div>
         <NText :depth="3" class="text-xs flex gap-1 items-center">
