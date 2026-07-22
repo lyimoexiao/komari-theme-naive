@@ -179,6 +179,9 @@ export function getDaysUntilExpired(expiredAt: string | number | undefined): num
  * @returns 过期状态
  */
 export function getExpireStatus(expiredAt: string | number | undefined): ExpireStatus {
+  if (!expiredAt)
+    return 'long_term'
+
   const days = getDaysUntilExpired(expiredAt)
 
   if (days <= 0)

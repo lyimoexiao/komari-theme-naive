@@ -3,12 +3,11 @@
  * 负责应用启动时的初始化流程和 WebSocket 连接管理
  */
 
-import type { Client, KomariRpc, NodeStatus } from '@/utils/rpc'
+import type { KomariRpc } from '@/utils/rpc'
 import { h } from 'vue'
 import LoginDialog from '@/components/LoginDialog.vue'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
-import { getSharedApi } from '@/utils/api'
 import { getSharedRpc, RpcError } from '@/utils/rpc'
 
 /** 初始化配置 */
@@ -17,17 +16,11 @@ interface InitConfig {
   wsReconnectInterval?: number
   /** WebSocket 最大重连次数（失败后回落 POST） */
   wsMaxReconnectAttempts?: number
-  /** 后端健康检查超时（毫秒） */
-  healthCheckTimeout?: number
-  /** POST 模式连续失败次数阈值 */
-  postFailureThreshold?: number
 }
 
 const DEFAULT_CONFIG: Required<InitConfig> = {
   wsReconnectInterval: 3000,
   wsMaxReconnectAttempts: 5,
-  healthCheckTimeout: 5000,
-  postFailureThreshold: 3,
 }
 
 /** 初始化状态管理 */
@@ -40,7 +33,6 @@ class InitManager {
   private isPolling = false
   private isInitialized = false
   private useWebSocket: boolean | null = null // 根据主题配置决定
-  private postFailureCount = 0
 
   constructor(config: InitConfig = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
@@ -82,6 +74,12 @@ class InitManager {
       // 3. 获取用户信息
       await this.fetchUserInfo()
 
+      if (this.appStore.publicSettings?.private_site && !this.appStore.isLoggedIn) {
+        this.appStore.requireLogin = true
+        this.showForceLoginModal()
+        return
+      }
+
       // 4. 获取节点信息和最新状态
       await this.fetchNodesData()
 
@@ -103,7 +101,6 @@ class InitManager {
 
   /**
    * 健康检查 - 测试后端服务是否正常
-   * 如果返回 401，说明是私有站点，需要强制登录
    */
   private async healthCheck(): Promise<void> {
     try {
@@ -113,13 +110,6 @@ class InitManager {
       }
     }
     catch (error) {
-      // 检查是否为 401 错误（私有站点需要登录）
-      if (error instanceof RpcError && error.code === 401) {
-        console.warn('[InitManager] Private site detected, requiring login')
-        this.appStore.requireLogin = true
-        this.showForceLoginModal()
-        return
-      }
       console.error('[InitManager] Health check failed:', error)
       this.appStore.connectionError = true
       throw new Error('Backend service unavailable')
@@ -143,11 +133,7 @@ class InitManager {
       closable: false,
       autoFocus: true,
       content: () => h(LoginDialog, {
-        forceLogin: true,
-        onLoginSuccess: () => {
-          // 登录成功后重新初始化
-          this.reinitAfterForceLogin()
-        },
+        afterLogin: () => this.reinitAfterForceLogin(),
       }),
     })
   }
@@ -187,8 +173,7 @@ class InitManager {
    */
   private async fetchPublicSettings(): Promise<void> {
     try {
-      const api = getSharedApi()
-      const publicSettings = await api.getPublicSettings()
+      const publicSettings = await this.rpc.getPublicInfo()
       this.appStore.publicSettings = publicSettings
     }
     catch (error) {
@@ -202,8 +187,7 @@ class InitManager {
    */
   private async fetchUserInfo(): Promise<void> {
     try {
-      const api = getSharedApi()
-      const userInfo = await api.getMe()
+      const userInfo = await this.rpc.getMe()
       this.appStore.setUserInfo(userInfo)
     }
     catch (error) {
@@ -219,8 +203,8 @@ class InitManager {
     try {
       // 并行获取节点信息和最新状态
       const [clientsResult, statusesResult] = await Promise.all([
-        this.rpc.getNodes() as Promise<Record<string, Client>>,
-        this.rpc.getNodesLatestStatus() as Promise<Record<string, NodeStatus>>,
+        this.rpc.getNodes(),
+        this.rpc.getNodesLatestStatus(),
       ])
 
       // 初始化节点数据
@@ -390,9 +374,9 @@ class InitManager {
         // 1. Ping 测试服务器状态
         this.rpc.ping(),
         // 2. 获取节点信息
-        this.rpc.getNodes() as Promise<Record<string, Client>>,
+        this.rpc.getNodes(),
         // 3. 获取节点最新状态
-        this.rpc.getNodesLatestStatus() as Promise<Record<string, NodeStatus>>,
+        this.rpc.getNodesLatestStatus(),
       ])
 
       // 更新节点信息（会智能合并，不会重建数组）
@@ -450,8 +434,12 @@ class InitManager {
     // 重新获取用户信息
     await this.fetchUserInfo()
 
-    // 重新建立 WebSocket 连接（如果配置为 websocket 模式）
-    this.connectWebSocket()
+    if (this.useWebSocket) {
+      await this.connectWebSocket()
+    }
+    else {
+      client.setTransport(false)
+    }
   }
 
   /**

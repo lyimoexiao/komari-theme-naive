@@ -37,6 +37,8 @@ This document applies to `/src` only. Keep changes aligned with the current Vue 
 
 - `src/utils` owns transport, formatting, lookups, and startup orchestration.
 - Keep API and RPC access in `@/utils/api` and `@/utils/rpc`.
+- Keep backend transfer types in `@/types/komari`; components and stores should not redeclare wire response shapes.
+- Use REST only for authentication redirects and login. Runtime settings, nodes, status, records, and version data go through the typed RPC2 wrapper.
 - Keep startup, login modal flow, transport selection, polling, reconnects, and WebSocket fallback in `@/utils/init`.
 - Keep formatting in helpers such as `@/utils/helper` and record shaping in `@/utils/recordHelper`.
 - Keep region, OS, and tag lookup logic in their dedicated helper modules.

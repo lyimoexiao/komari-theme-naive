@@ -2,8 +2,9 @@
 import { NAvatar, NButton, NFlex, NH3, NPopover } from 'naive-ui'
 import { computed, h, inject, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import LoginDialog from '@/components/LoginDialog.vue'
 import { useAppStore } from '@/stores/app'
-import LoginDialog from './LoginDialog.vue'
+import { reconnectAfterLogin } from '@/utils/init'
 
 const router = useRouter()
 const appStore = useAppStore()
@@ -12,6 +13,11 @@ const appStore = useAppStore()
 const isScrolled = inject<ReturnType<typeof ref<boolean>>>('isScrolled', ref(false))
 
 const siteFavicon = ref('/favicon.ico')
+
+async function finishLogin() {
+  await reconnectAfterLogin()
+  window.$modal?.destroyAll()
+}
 
 // 计算页面容器的样式
 const containerStyle = computed(() => {
@@ -69,7 +75,7 @@ function handleButtonClick(action: string) {
         title: '登录',
         preset: 'dialog',
         showIcon: false,
-        content: () => h(LoginDialog),
+        content: () => h(LoginDialog, { afterLogin: finishLogin }),
       })
       break
   }
@@ -80,7 +86,7 @@ function handleButtonClick(action: string) {
   <div class="transition-all duration-200 top-0 position-sticky z-10" :class="isScrolled ? 'bg-$n-color shadow-sm backdrop-blur-md' : 'bg-transparent'">
     <div class="px-4 flex-between h-16" :style="containerStyle">
       <NFlex class="flex-center cursor-pointer" @click="router.push('/')">
-        <NAvatar :src="siteFavicon" round />
+        <NAvatar :src="siteFavicon" :fallback-src="`${siteFavicon}?avatar`" round />
         <NH3 class="m-0">
           {{ appStore.publicSettings?.sitename || 'Komari Monitor' }}
         </NH3>

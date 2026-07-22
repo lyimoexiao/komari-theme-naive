@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { VersionInfo } from '@/utils/api'
+import type { VersionInfo } from '@/types/komari'
 import { NLayoutFooter, NText } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
 import { useAppStore } from '@/stores/app'
-import { getSharedApi } from '@/utils/api'
+import { getSharedRpc } from '@/utils/rpc'
 
 const appStore = useAppStore()
-const api = getSharedApi()
+const rpc = getSharedRpc()
 
 // 构建时注入的版本信息
 const buildVersion = __BUILD_VERSION__
@@ -18,7 +18,7 @@ const serverVersion = ref<VersionInfo | null>(null)
 // 获取服务端版本信息
 onMounted(async () => {
   try {
-    serverVersion.value = await api.getVersion()
+    serverVersion.value = await rpc.getBackendVersion()
   }
   catch {
     // 静默失败

@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import type { StatusRecord } from '@/types/komari'
 import type { RecordFormat } from '@/utils/recordHelper'
-import type { StatusRecord } from '@/utils/rpc'
 import { useIntervalFn } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { NButton, NCard, NEmpty, NSpin } from 'naive-ui'
@@ -221,15 +221,8 @@ async function fetchHistoryData() {
   error.value = null
 
   try {
-    const apiBase = import.meta.env.VITE_API_BASE
-    const response = await fetch(`${apiBase}/records/load?uuid=${props.uuid}&hours=${hours}`)
-
-    if (!response.ok) {
-      throw new Error(`HTTP error: ${response.status}`)
-    }
-
-    const resp = await response.json()
-    const records = resp.data?.records || []
+    const result = await rpc.getLoadRecords(props.uuid, hours)
+    const records = result.records
 
     // 按时间排序
     records.sort((a: StatusRecord, b: StatusRecord) =>

@@ -1,7 +1,16 @@
-/**
- * Komari RPC2 Client SDK
- * @see https://www.komari.wiki/dev/rpc.html
- */
+import type {
+  Client,
+  GetRecordsParams,
+  LoadRecordsResult,
+  LoadType,
+  MeInfo,
+  MethodMeta,
+  NodeStatus,
+  PingRecordsResult,
+  PublicInfo,
+  RecentStatusResult,
+  VersionInfo,
+} from '@/types/komari'
 
 // ==================== 类型定义 ====================
 
@@ -13,161 +22,8 @@ interface JsonRpcRequest {
   id: number | string
 }
 
-/** JSON-RPC 2.0 成功响应 */
-interface JsonRpcSuccessResponse<T = unknown> {
-  jsonrpc: '2.0'
-  result: T
-  id: number | string
-}
-
-/** JSON-RPC 2.0 错误响应 */
-interface JsonRpcErrorResponse {
-  jsonrpc: '2.0'
-  error: {
-    code: number
-    message: string
-    data?: unknown
-  }
-  id: number | string | null
-}
-
-/** JSON-RPC 2.0 响应 */
-type JsonRpcResponse<T = unknown> = JsonRpcSuccessResponse<T> | JsonRpcErrorResponse
-
-/** RPC 方法元数据 */
-export interface MethodMeta {
-  name: string
-  summary: string
-  description: string
-  params: ParamMeta[]
-  returns: string
-}
-
-/** 参数元数据 */
-export interface ParamMeta {
-  name: string
-  type: string
-  description: string
-}
-
-/** 节点客户端信息 */
-export interface Client {
-  uuid: string
-  token?: string
-  name: string
-  cpu_name: string
-  virtualization: string
-  arch: string
-  cpu_cores: number
-  os: string
-  kernel_version: string
-  gpu_name?: string
-  ipv4?: string
-  ipv6?: string
-  region: string
-  remark?: string
-  public_remark: string
-  mem_total: number
-  swap_total: number
-  disk_total: number
-  version?: string
-  weight: number
-  price: number
-  billing_cycle: number
-  auto_renewal: boolean
-  currency: string
-  expired_at: string
-  group: string
-  tags: string
-  hidden: boolean
-  traffic_limit: number
-  traffic_limit_type: string
-  created_at: string
-  updated_at: string
-}
-
-/** 公开站点信息 */
-export interface PublicInfo {
-  allow_cors: boolean
-  custom_body: string
-  custom_head: string
-  description: string
-  disable_password_login: boolean
-  oauth_enable: boolean
-  oauth_provider: string
-  ping_record_preserve_time: number
-  private_site: boolean
-  record_enabled: boolean
-  record_preserve_time: number
-  sitename: string
-  theme: string
-  theme_settings: Record<string, unknown>
-}
-
-/** 版本信息 */
-export interface VersionInfo {
-  version: string
-  hash: string
-}
-
-/** 节点状态 */
-export interface NodeStatus {
-  client: string
-  time: string
-  cpu: number
-  gpu: number
-  ram: number
-  ram_total: number
-  swap: number
-  swap_total: number
-  load: number
-  load5: number
-  load15: number
-  temp: number
-  disk: number
-  disk_total: number
-  net_in: number
-  net_out: number
-  net_total_up: number
-  net_total_down: number
-  process: number
-  connections: number
-  connections_udp: number
-  online: boolean
-  uptime: number
-}
-
-/** 状态记录 */
-export interface StatusRecord {
-  client: string
-  time: string
-  cpu: number
-  gpu: number
-  ram: number
-  ram_total: number
-  swap: number
-  swap_total: number
-  load: number
-  load5: number
-  load15: number
-  temp: number
-  disk: number
-  disk_total: number
-  net_in: number
-  net_out: number
-  net_total_up: number
-  net_total_down: number
-  process: number
-  connections: number
-  connections_udp: number
-}
-
-/** Ping 记录 */
-export interface PingRecord {
-  client: string
-  task_id: number
-  time: string
-  value: number
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
 /** RPC 错误 */
@@ -208,10 +64,10 @@ export class RpcClient {
   private wsConnectPromise: Promise<void> | null = null
 
   constructor(options: RpcClientOptions = {}) {
-    const apiBase = import.meta.env.VITE_API_BASE || ''
-    this.baseUrl = options.baseUrl || `${apiBase}/rpc2`
-    this.timeout = options.timeout || 30000
-    this.useWebSocket = options.useWebSocket || false
+    const apiBase = import.meta.env.VITE_API_BASE || '/api'
+    this.baseUrl = options.baseUrl ?? `${apiBase.replace(/\/$/, '')}/rpc2`
+    this.timeout = options.timeout ?? 30000
+    this.useWebSocket = options.useWebSocket ?? false
   }
 
   /**
@@ -233,6 +89,7 @@ export class RpcClient {
       const response = await fetch(this.baseUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(request),
         signal: controller.signal,
       })
@@ -243,8 +100,8 @@ export class RpcClient {
         throw new RpcError(response.status, `HTTP error: ${response.status}`)
       }
 
-      const data: JsonRpcResponse<T> = await response.json()
-      return this.handleResponse(data)
+      const data: unknown = await response.json()
+      return this.handleResponse<T>(data)
     }
     catch (error) {
       clearTimeout(timeoutId)
@@ -284,7 +141,8 @@ export class RpcClient {
    */
   private initWebSocket(): Promise<void> {
     return new Promise((resolve, reject) => {
-      const wsUrl = this.baseUrl.replace(/^http/, 'ws').replace(/^https/, 'wss')
+      const wsUrl = new URL(this.baseUrl, window.location.href)
+      wsUrl.protocol = wsUrl.protocol === 'https:' ? 'wss:' : 'ws:'
 
       // 关闭现有连接（如果有）
       if (this.ws) {
@@ -309,8 +167,8 @@ export class RpcClient {
 
       this.ws.onmessage = (event) => {
         try {
-          const data: JsonRpcResponse = JSON.parse(event.data)
-          if (data.id === null)
+          const data: unknown = JSON.parse(event.data)
+          if (!isRecord(data) || (typeof data.id !== 'number' && typeof data.id !== 'string'))
             return
           const pending = this.pendingRequests.get(data.id)
           if (pending) {
@@ -383,11 +241,24 @@ export class RpcClient {
   /**
    * 处理响应
    */
-  private handleResponse<T>(response: JsonRpcResponse<T>): T {
-    if ('error' in response) {
-      throw new RpcError(response.error.code, response.error.message, response.error.data)
+  private handleResponse<T>(response: unknown): T {
+    if (!isRecord(response) || response.jsonrpc !== '2.0') {
+      throw new RpcError(-32603, 'Invalid JSON-RPC response')
     }
-    return response.result
+
+    if ('error' in response) {
+      const error = response.error
+      if (!isRecord(error) || typeof error.code !== 'number' || typeof error.message !== 'string') {
+        throw new RpcError(-32603, 'Invalid JSON-RPC error response')
+      }
+      throw new RpcError(error.code, error.message, error.data)
+    }
+
+    if (!('result' in response)) {
+      throw new RpcError(-32603, 'Missing JSON-RPC result')
+    }
+
+    return response.result as T
   }
 
   /**
@@ -426,17 +297,16 @@ export class RpcClient {
   async ensureWebSocketConnectedWithPing(timeoutMs = 10000): Promise<void> {
     await this.ensureWebSocketReady()
 
-    // 使用 AbortController 实现超时
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+    let timeoutId: ReturnType<typeof setTimeout> | undefined
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = setTimeout(() => reject(new RpcError(-32001, 'WebSocket ping timeout')), timeoutMs)
+    })
 
     try {
-      await this.callWebSocket<string>('rpc.ping')
-      clearTimeout(timeoutId)
+      await Promise.race([this.callWebSocket<string>('rpc.ping'), timeout])
     }
-    catch (error) {
+    finally {
       clearTimeout(timeoutId)
-      throw error
     }
   }
 
@@ -490,15 +360,15 @@ export class KomariRpc {
   /**
    * 获取所有可用方法
    */
-  async getMethods(): Promise<string[]> {
-    return this.client.call<string[]>('rpc.getMethods')
+  async getMethods(internal = false): Promise<string[]> {
+    return this.client.call<string[]>('rpc.methods', { internal })
   }
 
   /**
    * 获取帮助信息
    */
-  async getHelp(): Promise<MethodMeta[]> {
-    return this.client.call<MethodMeta[]>('rpc.getHelp')
+  async getHelp(method: string): Promise<MethodMeta> {
+    return this.client.call<MethodMeta>('rpc.help', { method })
   }
 
   /**
@@ -511,8 +381,8 @@ export class KomariRpc {
   /**
    * 获取版本信息
    */
-  async getVersion(): Promise<VersionInfo> {
-    return this.client.call<VersionInfo>('rpc.getVersion')
+  async getVersion(): Promise<string> {
+    return this.client.call<string>('rpc.version')
   }
 
   // ==================== 通用方法 ====================
@@ -520,36 +390,47 @@ export class KomariRpc {
   /**
    * 获取所有节点信息
    */
-  async getNodes(): Promise<Record<string, Client>> {
-    return this.client.call<Record<string, Client>>('common:getNodes')
+  async getNodes(): Promise<Record<string, Client>>
+  async getNodes(uuid: string): Promise<Client>
+  async getNodes(uuid?: string): Promise<Client | Record<string, Client>> {
+    return this.client.call<Client | Record<string, Client>>('common:getNodes', uuid ? { uuid } : undefined)
   }
 
   /**
    * 获取所有节点最新状态
    */
-  async getNodesLatestStatus(): Promise<Record<string, NodeStatus>> {
-    return this.client.call<Record<string, NodeStatus>>('common:getNodesLatestStatus')
+  async getNodesLatestStatus(uuid?: string, uuids?: string[]): Promise<Record<string, NodeStatus>> {
+    const params = uuid
+      ? { uuid }
+      : uuids
+        ? { uuids }
+        : undefined
+    return this.client.call<Record<string, NodeStatus>>('common:getNodesLatestStatus', params)
   }
 
   /**
    * 获取节点最近状态记录
    */
-  async getNodeRecentStatus(uuid: string, limit?: number): Promise<{ count: number, records: StatusRecord[] }> {
-    return this.client.call<{ count: number, records: StatusRecord[] }>('common:getNodeRecentStatus', { uuid, limit })
+  async getNodeRecentStatus(uuid: string): Promise<RecentStatusResult> {
+    return this.client.call<RecentStatusResult>('common:getNodeRecentStatus', { uuid })
   }
 
   /**
    * 获取公开的站点信息
    */
   async getPublicInfo(): Promise<PublicInfo> {
-    return this.client.call<PublicInfo>('common:getPublicInfo')
+    return this.client.call<PublicInfo>('public:getPublicSettings')
+  }
+
+  async getMe(): Promise<MeInfo> {
+    return this.client.call<MeInfo>('public:getMe')
   }
 
   /**
    * 获取后端版本
    */
   async getBackendVersion(): Promise<VersionInfo> {
-    return this.client.call<VersionInfo>('common:getBackendVersion')
+    return this.client.call<VersionInfo>('public:getVersion')
   }
 
   // ==================== 历史记录方法 ====================
@@ -557,39 +438,30 @@ export class KomariRpc {
   /**
    * 获取历史记录（通用方法）
    */
-  async getRecords(params: {
-    type: 'load' | 'ping'
-    uuid?: string
-    hours?: number
-    task_id?: number
-    load_type?: string
-    max_count?: number
-  }): Promise<unknown> {
-    return this.client.call('common:getRecords', params)
+  async getRecords<T>(params: GetRecordsParams): Promise<T> {
+    return this.client.call<T>('common:getRecords', { ...params })
   }
 
   /**
    * 获取负载记录
    */
-  async getLoadRecords(uuid?: string, hours?: number, loadType?: string, maxCount?: number): Promise<{ records: StatusRecord[] }> {
-    return this.client.call<{ records: StatusRecord[] }>('common:getRecords', {
+  async getLoadRecords(uuid: string, hours = 4, loadType: LoadType = 'all', maxCount = 4000): Promise<LoadRecordsResult> {
+    return this.client.call<LoadRecordsResult>('common:getRecords', {
       type: 'load',
       uuid,
       hours,
       load_type: loadType,
-      max_count: maxCount,
+      maxCount,
     })
   }
 
   /**
    * 获取 Ping 记录
    */
-  async getPingRecords(taskId?: number, hours?: number, maxCount?: number): Promise<{ records: PingRecord[] }> {
-    return this.client.call<{ records: PingRecord[] }>('common:getRecords', {
-      type: 'ping',
-      task_id: taskId,
-      hours,
-      max_count: maxCount,
+  async getPingRecords(uuid: string, hours = 4): Promise<PingRecordsResult> {
+    return this.client.call<PingRecordsResult>('public:getPingRecords', {
+      uuid,
+      hours: String(hours),
     })
   }
 

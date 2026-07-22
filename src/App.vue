@@ -1,17 +1,14 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
-import Background from './components/Background.vue'
-import Footer from './components/Footer.vue'
-import Header from './components/Header.vue'
-import LoadingCover from './components/LoadingCover.vue'
-import Provider from './components/Provider.vue'
-import { useAppStore } from './stores/app'
-import { destroyInitManager, initApp } from './utils/init'
+import { computed, onMounted, onUnmounted } from 'vue'
+import Background from '@/components/Background.vue'
+import Footer from '@/components/Footer.vue'
+import Header from '@/components/Header.vue'
+import LoadingCover from '@/components/LoadingCover.vue'
+import Provider from '@/components/Provider.vue'
+import { useAppStore } from '@/stores/app'
+import { destroyInitManager, initApp } from '@/utils/init'
 
 const appStore = useAppStore()
-
-// 组件就绪状态：用于确保 DOM 完全渲染后再隐藏 loading
-const isReady = ref(false)
 
 // 计算页面容器的样式
 const pageContainerStyle = computed(() => {
@@ -28,14 +25,9 @@ const pageContainerStyle = computed(() => {
 onMounted(async () => {
   try {
     await initApp()
-    // 确保 DOM 更新完成后再标记为就绪
-    await nextTick()
-    isReady.value = true
   }
   catch (error) {
     console.error('[App] Initialization failed:', error)
-    // 即使失败也要标记为就绪，显示错误状态
-    isReady.value = true
   }
 })
 

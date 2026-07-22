@@ -5,14 +5,9 @@ import { NButton, NDivider, NForm, NFormItem, NInput, NInputOtp } from 'naive-ui
 import { ref } from 'vue'
 import { useAppStore } from '@/stores/app'
 import { ApiError, getSharedApi } from '@/utils/api'
-import { reconnectAfterLogin } from '@/utils/init'
 
 const props = defineProps<{
-  forceLogin?: boolean
-}>()
-
-const emit = defineEmits<{
-  loginSuccess: []
+  afterLogin: () => void | Promise<void>
 }>()
 
 const appStore = useAppStore()
@@ -37,6 +32,11 @@ const rules = ref({
   password: [{ required: true, message: '请输入密码', trigger: ['blur'] }],
 })
 
+async function finishLogin() {
+  window.$message?.success('登录成功')
+  await props.afterLogin()
+}
+
 async function handleLogin() {
   try {
     await formRef.value?.validate()
@@ -50,18 +50,7 @@ async function handleLogin() {
   try {
     await api.login(form.value.username, form.value.password)
 
-    // 登录成功
-    window.$message?.success('登录成功')
-
-    if (props.forceLogin) {
-      // 强制登录模式：触发事件让父组件处理后续流程
-      emit('loginSuccess')
-    }
-    else {
-      // 普通登录：重新连接 WebSocket
-      await reconnectAfterLogin()
-      window.$modal?.destroyAll()
-    }
+    await finishLogin()
   }
   catch (error) {
     // 检查是否需要 2FA 验证
@@ -92,18 +81,7 @@ async function handleOtpSubmit() {
   try {
     await api.login(form.value.username, form.value.password, code)
 
-    // 登录成功
-    window.$message?.success('登录成功')
-
-    if (props.forceLogin) {
-      // 强制登录模式：触发事件让父组件处理后续流程
-      emit('loginSuccess')
-    }
-    else {
-      // 普通登录：重新连接 WebSocket
-      await reconnectAfterLogin()
-      window.$modal?.destroyAll()
-    }
+    await finishLogin()
   }
   catch (error) {
     console.error('[LoginDialog] OTP error:', error)
@@ -116,7 +94,7 @@ async function handleOtpSubmit() {
 }
 
 function handleOAuth2Login() {
-  location.href = '/api/oauth'
+  api.oauthLogin()
 }
 </script>
 

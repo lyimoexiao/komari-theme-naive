@@ -1,4 +1,4 @@
-import type { MeInfo, PublicSettings } from '@/utils/api'
+import type { MeInfo, PublicInfo } from '@/types/komari'
 import type { ByteDecimalsConfig, UptimeFormat } from '@/utils/helper'
 import { usePreferredDark, useStorageAsync } from '@vueuse/core'
 import { defineStore } from 'pinia'
@@ -44,7 +44,7 @@ const useAppStore = defineStore('app', () => {
   // 使用 VueUse 的 useStorageAsync 实现自动持久化
   const themeMode = useStorageAsync<ThemeMode>('themeMode', 'auto', localStorage)
   const lang = ref<Lang>('zh-CN')
-  const publicSettings = ref<PublicSettings>()
+  const publicSettings = ref<PublicInfo>()
   const userInfo = ref<MeInfo>()
   const nodeSelectedGroup = useStorageAsync<string>('nodeSelectedGroup', 'all', localStorage)
   const isLoggedIn = ref<boolean>(false)

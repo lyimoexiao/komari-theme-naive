@@ -1,4 +1,4 @@
-import type { Client, NodeStatus } from '@/utils/rpc'
+import type { Client, NodeStatus } from '@/types/komari'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 
@@ -149,7 +149,7 @@ const useNodesStore = defineStore('nodes', () => {
       billing_cycle: client.billing_cycle,
       auto_renewal: client.auto_renewal,
       currency: client.currency,
-      expired_at: client.expired_at,
+      expired_at: client.expired_at ?? '',
       group: client.group,
       tags: client.tags,
       hidden: client.hidden,

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { PingRecord, PingTaskSummary } from '@/types/komari'
 import dayjs from 'dayjs'
 import { NButton, NEmpty, NSpin, NSwitch, NTooltip } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
@@ -95,42 +96,9 @@ watch(availableViews, (views) => {
   }
 }, { immediate: true })
 
-// ==================== 类型定义 ====================
-
-interface PingRecord {
-  client: string
-  task_id: number
-  time: string
-  value: number
-}
-
-interface TaskInfo {
-  id: number
-  name: string
-  interval: number
-  loss: number
-  p99?: number
-  p50?: number
-  p99_p50_ratio?: number
-  min?: number
-  max?: number
-  avg?: number
-  latest?: number
-  total?: number
-  type?: string
-}
-
-interface PingRecordsResponse {
-  count: number
-  records: PingRecord[]
-  tasks?: TaskInfo[]
-  from?: string
-  to?: string
-}
-
 // 数据状态
 const remoteData = shallowRef<PingRecord[]>([])
-const tasks = shallowRef<TaskInfo[]>([])
+const tasks = shallowRef<PingTaskSummary[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
 
@@ -150,11 +118,7 @@ async function fetchRecords() {
   error.value = null
 
   try {
-    const result = await rpc.getClient().call<PingRecordsResponse>('common:getRecords', {
-      uuid: props.uuid,
-      type: 'ping',
-      hours: selectedHours.value,
-    })
+    const result = await rpc.getPingRecords(props.uuid, selectedHours.value)
 
     const records = result?.records || []
     records.sort((a, b) => dayjs(a.time).valueOf() - dayjs(b.time).valueOf())
@@ -296,27 +260,46 @@ function getTaskColor(taskId: number): string {
   return chartColors[safeIndex]!
 }
 
+function percentile(values: number[], value: number): number | undefined {
+  if (!values.length)
+    return undefined
+  const index = Math.max(0, Math.ceil(value * values.length) - 1)
+  return values[index]
+}
+
 // 最新值统计（从服务端 tasks 获取，保持颜色顺序）
 const latestValues = computed(() => {
   if (!tasks.value.length)
     return []
 
-  const latestMap = new Map<number, number | null>()
-  for (const task of tasks.value) {
-    for (let i = remoteData.value.length - 1; i >= 0; i--) {
-      const rec = remoteData.value[i]
-      if (rec && rec.task_id === task.id && rec.value >= 0) {
-        latestMap.set(task.id, rec.value)
+  return tasks.value.map((task, idx) => {
+    const records = remoteData.value.filter(record => record.task_id === task.id)
+    const values = records
+      .filter(record => record.value >= 0)
+      .map(record => record.value)
+      .sort((a, b) => a - b)
+    let latestValue: number | null = null
+    for (let i = records.length - 1; i >= 0; i--) {
+      const record = records[i]
+      if (record && record.value >= 0) {
+        latestValue = record.value
         break
       }
     }
-  }
-
-  return tasks.value.map((task, idx) => {
+    const p50 = percentile(values, 0.5)
+    const p99 = percentile(values, 0.99)
     const safeIdx = Math.max(0, idx % chartColors.length)
     return {
       ...task,
-      latestValue: latestMap.get(task.id) ?? null,
+      min: task.min ?? values[0],
+      max: task.max ?? values.at(-1),
+      avg: task.avg ?? (values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : undefined),
+      latest: latestValue ?? undefined,
+      p50,
+      p99,
+      p99_p50_ratio: p50 && p99 ? p99 / p50 : undefined,
+      loss: task.loss ?? (records.length ? records.filter(record => record.value < 0).length / records.length * 100 : 0),
+      latestValue,
       color: chartColors[safeIdx]!,
     }
   })
