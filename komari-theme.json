@@ -76,6 +76,7 @@
       { "key": "lightBackgroundUrl", "name": "亮色模式背景地址", "type": "string", "default": "", "help": "亮色模式下的背景图片/视频 URL" },
       { "key": "darkBackgroundUrl", "name": "暗色模式背景地址", "type": "string", "default": "", "help": "暗色模式下的背景图片/视频 URL" },
       { "key": "backgroundBlur", "name": "背景模糊半径", "type": "number", "default": 0, "help": "背景的高斯模糊半径（单位：px），0 表示不模糊" },
+      { "key": "cardBlurRadius", "name": "卡片模糊半径", "type": "number", "default": 12, "help": "启用自定义背景后，卡片毛玻璃的模糊半径（单位：px），与背景模糊独立；0 表示保留透明玻璃材质但不模糊" },
       { "key": "backgroundOverlay", "name": "背景遮罩透明度", "type": "number", "default": 0, "help": "背景遮罩层的透明度（0-100），0 表示无遮罩，数值越大遮罩越深" }
     ]
   }

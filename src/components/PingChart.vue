@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import { NButton, NEmpty, NSpin, NSwitch, NTooltip, useThemeVars } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { cutPeakValues, interpolateNullsLinear } from '@/utils/recordHelper'
 import { getSharedRpc } from '@/utils/rpc'
@@ -15,6 +16,7 @@ const props = defineProps<{
 }>()
 
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 const themeVars = useThemeVars()
 const isDark = computed(() => appStore.isDark)
 // 使用共享的 RPC 实例，避免重复创建连接
@@ -514,25 +516,6 @@ onMounted(() => {
   }
   fetchRecords()
 })
-
-// 是否启用模糊背景
-const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
-
-// 计算模糊半径类
-const blurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
-})
 </script>
 
 <template>
@@ -585,10 +568,9 @@ const blurClass = computed(() => {
               selectedTaskIds.includes(task.id)
                 ? 'ping-task-card--selected'
                 : 'ping-task-card--muted',
-              hasBackgroundBlur ? 'glass-task-enabled' : 'task-card-default',
-              blurClass,
+              isGlassEnabled ? 'glass-surface-enabled glass-task-enabled' : 'task-card-default',
             ]"
-            :style="{ '--task-color': task.color }"
+            :style="[{ '--task-color': task.color }, glassSurfaceStyle]"
             @click="toggleTask(task.id)"
           >
             <div
@@ -864,11 +846,6 @@ html.dark .task-card-default {
 
 /* 毛玻璃任务卡片样式 */
 .glass-task-enabled {
-  background-color: rgba(255, 255, 255, 0.7);
   border-radius: var(--ping-radius);
-}
-
-html.dark .glass-task-enabled {
-  background-color: rgba(24, 24, 28, 0.85);
 }
 </style>

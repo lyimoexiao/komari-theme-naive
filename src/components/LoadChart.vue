@@ -6,6 +6,7 @@ import dayjs from 'dayjs'
 import { NButton, NCard, NEmpty, NSpin } from 'naive-ui'
 import { computed, onMounted, ref, shallowRef, watch } from 'vue'
 import VChart from 'vue-echarts'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
 import { formatBytes, formatBytesSplit } from '@/utils/helper'
@@ -18,6 +19,7 @@ const props = defineProps<{
 }>()
 
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 const nodesStore = useNodesStore()
 
 // 从 publicSettings 获取记录保留时间
@@ -821,25 +823,6 @@ watch(isRealtime, (realtime) => {
   }
 }, { immediate: true })
 
-// 是否启用模糊背景
-const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
-
-// 计算模糊半径类
-const blurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
-})
-
 // ==================== 生命周期 ====================
 
 watch(selectedView, () => {
@@ -886,7 +869,7 @@ onMounted(() => {
       <!-- 图表网格 -->
       <div v-else class="gap-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
         <!-- CPU 卡片 -->
-        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard size="small" class="chart-card" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">CPU</span>
@@ -903,7 +886,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 内存卡片 -->
-        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard size="small" class="chart-card" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">内存</span>
@@ -928,7 +911,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 磁盘卡片 -->
-        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard size="small" class="chart-card" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">磁盘</span>
@@ -953,7 +936,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 网络卡片 -->
-        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard size="small" class="chart-card" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">网络</span>
@@ -980,7 +963,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 连接数卡片 -->
-        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard size="small" class="chart-card" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">连接</span>
@@ -999,7 +982,7 @@ onMounted(() => {
         </NCard>
 
         <!-- 进程卡片 -->
-        <NCard size="small" class="chart-card" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard size="small" class="chart-card" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle">
           <template #header>
             <div class="flex items-center justify-between">
               <span class="text-base font-bold">进程</span>
@@ -1027,16 +1010,12 @@ onMounted(() => {
 
 /* 毛玻璃卡片样式 */
 .glass-card-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-
   &:hover {
     filter: brightness(0.95);
   }
 }
 
 html.dark .glass-card-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-
   &:hover {
     filter: brightness(1.1);
   }

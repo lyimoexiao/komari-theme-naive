@@ -2,6 +2,7 @@
 import { NButton, NCard, NDivider, NEmpty, NIcon, NTabPane, NTabs, NTag, NText } from 'naive-ui'
 import { computed, defineAsyncComponent, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
 import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, formatUptimeWithFormat } from '@/utils/helper'
@@ -16,6 +17,7 @@ const route = useRoute()
 const router = useRouter()
 
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 const nodesStore = useNodesStore()
 
 // 进入详情页时滚动到顶部
@@ -33,25 +35,6 @@ const chartView = ref<'load' | 'ping'>('load')
 
 const data = computed(() => {
   return nodesStore.nodes.find(node => node.uuid === route.params.id)
-})
-
-// 是否启用模糊背景
-const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
-
-// 计算模糊半径类
-const blurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
 })
 
 /** 信息项配置 */
@@ -129,7 +112,7 @@ const lightCardContrastEnabled = computed(() => appStore.lightCardContrast && !a
       <!-- 实例信息卡片 -->
       <div class="p-4 gap-4 grid grid-cols-1 lg:grid-cols-2">
         <!-- 硬件信息 -->
-        <NCard title="硬件信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="硬件信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled && !isGlassEnabled }, { 'glass-surface-enabled glass-card-enabled': isGlassEnabled }]" :style="glassSurfaceStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in hardwareInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -146,7 +129,7 @@ const lightCardContrastEnabled = computed(() => appStore.lightCardContrast && !a
         </NCard>
 
         <!-- 系统信息 -->
-        <NCard title="系统信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="系统信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled && !isGlassEnabled }, { 'glass-surface-enabled glass-card-enabled': isGlassEnabled }]" :style="glassSurfaceStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div v-for="item in systemInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -168,7 +151,7 @@ const lightCardContrastEnabled = computed(() => appStore.lightCardContrast && !a
         </NCard>
 
         <!-- 存储信息 -->
-        <NCard title="存储信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="存储信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled && !isGlassEnabled }, { 'glass-surface-enabled glass-card-enabled': isGlassEnabled }]" :style="glassSurfaceStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-3">
             <div v-for="item in storageInfo" :key="item.label" class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -185,7 +168,7 @@ const lightCardContrastEnabled = computed(() => appStore.lightCardContrast && !a
         </NCard>
 
         <!-- 网络信息 -->
-        <NCard title="网络信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled }, { 'glass-card-enabled': hasBackgroundBlur }, blurClass]">
+        <NCard title="网络信息" size="small" :class="[{ 'light-card-contrast': lightCardContrastEnabled && !isGlassEnabled }, { 'glass-surface-enabled glass-card-enabled': isGlassEnabled }]" :style="glassSurfaceStyle">
           <div class="gap-4 grid grid-cols-1 sm:grid-cols-2">
             <div class="flex flex-col gap-1">
               <div class="flex gap-1 items-center">
@@ -251,16 +234,12 @@ const lightCardContrastEnabled = computed(() => appStore.lightCardContrast && !a
 
 /* 毛玻璃卡片样式 */
 .glass-card-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-
   &:hover {
     filter: brightness(0.95);
   }
 }
 
 html.dark .glass-card-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-
   &:hover {
     filter: brightness(1.1);
   }

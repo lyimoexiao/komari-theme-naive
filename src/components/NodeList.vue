@@ -4,6 +4,7 @@ import { NBadge, NButton, NIcon, NList, NListItem, NModal, NProgress, NTag, NTex
 import { computed, ref } from 'vue'
 import PingChart from '@/components/PingChart.vue'
 import TrafficProgress from '@/components/TrafficProgress.vue'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, formatUptimeWithFormat, getStatus } from '@/utils/helper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
@@ -26,6 +27,7 @@ const isTouchDevice = computed(() => {
 })
 
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 
 // 获取 Naive UI 主题变量
 const themeVars = useThemeVars()
@@ -187,27 +189,6 @@ const rowHeightStyle = computed(() => {
   return {}
 })
 
-// 是否启用背景模糊
-const hasBackgroundBlur = computed(() => {
-  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
-})
-
-// 计算列表模糊半径类
-const listBlurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
-})
-
 // 计算国旗图标路径
 function getFlagSrc(region: string): string {
   const code = getRegionCode(region)
@@ -356,10 +337,10 @@ const columnTitles: Record<string, string> = {
       bordered
       class="min-w-fit w-full"
       :class="[
-        { 'light-list-contrast': appStore.lightCardContrast && !appStore.isDark },
-        { 'glass-list-enabled': hasBackgroundBlur },
-        listBlurClass,
+        { 'light-list-contrast': appStore.lightCardContrast && !appStore.isDark && !isGlassEnabled },
+        { 'glass-surface-enabled glass-list-enabled': isGlassEnabled },
       ]"
+      :style="glassSurfaceStyle"
     >
       <template #header>
         <div class="node-list-header" :style="gridStyle">
@@ -791,18 +772,14 @@ const columnTitles: Record<string, string> = {
 
 /* 毛玻璃列表样式 */
 .glass-list-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-
   :deep(.n-list-item) {
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: color-mix(in srgb, var(--n-color) 48%, transparent);
   }
 }
 
 html.dark .glass-list-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-
   :deep(.n-list-item) {
-    background-color: rgba(24, 24, 28, 0.7);
+    background-color: color-mix(in srgb, var(--n-color) 58%, transparent);
   }
 }
 </style>

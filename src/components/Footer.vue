@@ -2,10 +2,12 @@
 import type { VersionInfo } from '@/types/komari'
 import { NLayoutFooter, NText } from 'naive-ui'
 import { computed, onMounted, ref } from 'vue'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { getSharedRpc } from '@/utils/rpc'
 
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 const rpc = getSharedRpc()
 
 // 构建时注入的版本信息
@@ -39,31 +41,13 @@ const containerStyle = computed(() =>
 const showIcp = computed(() => appStore.icpEnabled && appStore.icpNumber)
 const showPolice = computed(() => appStore.policeEnabled && appStore.policeNumber)
 const showFiling = computed(() => showIcp.value || showPolice.value)
-
-// 是否启用模糊背景
-const hasBackgroundBlur = computed(() => appStore.backgroundEnabled && appStore.backgroundBlur > 0)
-
-// 计算模糊半径类
-const blurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
-})
 </script>
 
 <template>
   <NLayoutFooter
     class="px-4 py-4 w-full"
-    :class="[{ 'glass-footer-enabled': hasBackgroundBlur }, blurClass]"
+    :class="{ 'glass-surface-enabled glass-footer-enabled': isGlassEnabled }"
+    :style="glassSurfaceStyle"
   >
     <div
       class="flex flex-col gap-3 w-full sm:flex-row sm:gap-4 sm:items-center sm:justify-between"
@@ -153,14 +137,3 @@ const blurClass = computed(() => {
     </div>
   </NLayoutFooter>
 </template>
-
-<style scoped>
-/* 毛玻璃 Footer 样式 */
-.glass-footer-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-}
-
-html.dark .glass-footer-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-}
-</style>

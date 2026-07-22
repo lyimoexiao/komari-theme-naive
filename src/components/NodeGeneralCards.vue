@@ -3,6 +3,7 @@ import type { NodeData } from '@/stores/nodes'
 import { useNow } from '@vueuse/core'
 import { NCard, NText } from 'naive-ui'
 import { computed } from 'vue'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
 import { formatBytesPerSecondSplit, formatBytesSplit } from '@/utils/helper'
@@ -11,6 +12,7 @@ const props = defineProps<{
   nodes?: NodeData[]
 }>()
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 const nodesStore = useNodesStore()
 
 const summaryNodes = computed(() => props.nodes ?? nodesStore.nodes)
@@ -53,33 +55,12 @@ const formattedTrafficDown = computed(() => formatBytesSplit(totalTraffic.value.
 // 格式化速率（使用配置，返回分离的数值和单位）
 const formattedSpeedUp = computed(() => formatBytesPerSecondSplit(totalSpeed.value.up, appStore.byteDecimals))
 const formattedSpeedDown = computed(() => formatBytesPerSecondSplit(totalSpeed.value.down, appStore.byteDecimals))
-
-// 是否启用背景模糊
-const hasBackgroundBlur = computed(() => {
-  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
-})
-
-// 计算卡片模糊半径类
-const cardBlurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
-})
 </script>
 
 <template>
-  <div class="general-info p-4 flex flex-col gap-2 sm:p-4 sm:gap-4 lg:grid lg:grid-cols-5" :class="{ 'light-general-contrast': appStore.lightCardContrast && !appStore.isDark }">
+  <div class="general-info p-4 flex flex-col gap-2 sm:p-4 sm:gap-4 lg:grid lg:grid-cols-5" :class="{ 'light-general-contrast': appStore.lightCardContrast && !appStore.isDark && !isGlassEnabled }">
     <!-- 当前时间 -->
-    <NCard hoverable class="sm:min-h-32" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, cardBlurClass]" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle" content-class="h-full">
       <!-- 移动端单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -105,7 +86,7 @@ const cardBlurClass = computed(() => {
     </NCard>
 
     <!-- 在线节点 -->
-    <NCard hoverable class="sm:min-h-32" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, cardBlurClass]" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle" content-class="h-full">
       <!-- 移动端单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -145,7 +126,7 @@ const cardBlurClass = computed(() => {
     </NCard>
 
     <!-- 点亮区域 -->
-    <NCard hoverable class="sm:min-h-32" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, cardBlurClass]" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle" content-class="h-full">
       <!-- 移动端单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -171,7 +152,7 @@ const cardBlurClass = computed(() => {
     </NCard>
 
     <!-- 流量总览 -->
-    <NCard hoverable class="sm:min-h-32" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, cardBlurClass]" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle" content-class="h-full">
       <!-- 移动端单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -213,7 +194,7 @@ const cardBlurClass = computed(() => {
     </NCard>
 
     <!-- 网络速率 -->
-    <NCard hoverable class="sm:min-h-32" :class="[{ 'glass-card-enabled': hasBackgroundBlur }, cardBlurClass]" content-class="h-full">
+    <NCard hoverable class="sm:min-h-32" :class="{ 'glass-surface-enabled glass-card-enabled': isGlassEnabled }" :style="glassSurfaceStyle" content-class="h-full">
       <!-- 移动端单行显示 -->
       <div class="flex gap-2 items-center justify-between sm:hidden" :style="{ fontFamily: appStore.numberFontFamily }">
         <NText :depth="3" class="text-xs flex shrink-0 gap-1 items-center">
@@ -265,16 +246,12 @@ const cardBlurClass = computed(() => {
 
 /* 毛玻璃卡片样式 */
 .glass-card-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
-
   &:hover {
     filter: brightness(0.95);
   }
 }
 
 html.dark .glass-card-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-
   &:hover {
     filter: brightness(1.1);
   }

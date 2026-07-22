@@ -4,6 +4,7 @@ import { NButton, NCard, NEllipsis, NIcon, NModal, NProgress, NTag, NText, NTool
 import { computed, ref } from 'vue'
 import PingChart from '@/components/PingChart.vue'
 import TrafficProgress from '@/components/TrafficProgress.vue'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { formatBytesPerSecondWithConfig, formatBytesWithConfig, formatDateTime, formatUptimeWithFormat, getStatus } from '@/utils/helper'
 import { getOSImage, getOSName } from '@/utils/osImageHelper'
@@ -19,6 +20,7 @@ const emit = defineEmits<{
 }>()
 
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 
 // 获取 Naive UI 主题变量
 const themeVars = useThemeVars()
@@ -136,27 +138,6 @@ const shouldShowTagsInSeparateRow = computed(() => {
   return appStore.tagsInSeparateRow && mergedTags.value.length > 0
 })
 
-// 是否启用背景模糊
-const hasBackgroundBlur = computed(() => {
-  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
-})
-
-// 计算卡片模糊半径类
-const cardBlurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
-})
-
 const visibleMetrics = computed(() => new Set(appStore.cardMetrics))
 
 function handleCardKeydown(event: KeyboardEvent): void {
@@ -180,11 +161,10 @@ function handleCardKeydown(event: KeyboardEvent): void {
       class="node-card w-full cursor-pointer transition-all duration-200" :class="[
         `node-card--${appStore.cardSize}`,
         props.node.online ? 'node-card--online hover:border-primary' : 'node-card--offline',
-        { 'light-card-contrast': appStore.lightCardContrast && !appStore.isDark },
-        { 'glass-card-enabled': hasBackgroundBlur },
-        cardBlurClass,
+        { 'light-card-contrast': appStore.lightCardContrast && !appStore.isDark && !isGlassEnabled },
+        { 'glass-surface-enabled glass-card-enabled': isGlassEnabled },
       ]"
-      :style="{ '--offline-color': themeVars.errorColor, '--online-color': themeVars.successColor }"
+      :style="[{ '--offline-color': themeVars.errorColor, '--online-color': themeVars.successColor }, glassSurfaceStyle]"
       @click="emit('click')"
     >
       <template #header>
@@ -583,7 +563,6 @@ function handleCardKeydown(event: KeyboardEvent): void {
 
 /* 毛玻璃卡片样式 */
 .glass-card-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
   border-radius: var(--n-border-radius);
 
   &:hover {
@@ -592,8 +571,6 @@ function handleCardKeydown(event: KeyboardEvent): void {
 }
 
 html.dark .glass-card-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
-
   &:hover {
     filter: brightness(1.1);
   }

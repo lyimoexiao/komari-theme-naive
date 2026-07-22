@@ -579,13 +579,12 @@ const useAppStore = defineStore('app', () => {
     return 0
   })
 
-  // 计算属性：卡片模糊半径（当启用自定义背景时，使用更高的模糊半径）
   const cardBlurRadius = computed<number>(() => {
-    if (backgroundEnabled.value && backgroundBlur.value > 0) {
-      // 卡片使用背景模糊半径 + 8px 的额外模糊
-      return backgroundBlur.value + 8
+    const settings = publicSettings.value?.theme_settings
+    if (settings && typeof settings.cardBlurRadius === 'number' && settings.cardBlurRadius >= 0) {
+      return settings.cardBlurRadius
     }
-    return 0
+    return 12
   })
 
   // 当 publicSettings 加载后，如果 localStorage 没有保存过视图模式或值为非法值，使用默认值

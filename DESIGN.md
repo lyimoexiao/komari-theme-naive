@@ -12,7 +12,7 @@ Reference note: Komari Emerald informs the group-aware summary behavior and comp
 - Typography: body text uses the configured `fontFamily`; measurements use `numberFontFamily`. Titles are 18px, primary card values 13px, metadata 12px, and supporting measurements 10px.
 - Spacing: 4px base unit for layout rhythm. Page padding is 16px; card grid gap is 12px compact, 16px comfortable, and 20px spacious. Naive card density uses 12px/14px compact and 20px/22px spacious content padding so horizontal padding remains optically balanced around text and icons.
 - Radius: inherit the configured Naive UI radius. Do not introduce an unrelated radius scale.
-- Depth: borders are primary separation. Optional light contrast and glass modes may add the existing restrained shadow or blur.
+- Depth: borders are primary separation. Enabling a custom background switches cards to a translucent, background-reactive glass surface. Background blur and card backdrop blur are independent tokens; card glass remains translucent when its blur radius is zero.
 
 ## 3. Layout
 
@@ -30,6 +30,7 @@ Reference note: Komari Emerald informs the group-aware summary behavior and comp
 
 ## 5. Primitives and states
 
+- `GlassSurface`: enabled whenever the custom background is enabled; derives its tint from the active Naive surface color, reveals the background beneath it, and uses the independently configured card blur radius.
 - `SummaryCard`: default, light-contrast, glass.
 - `NodeToolbar`: group tabs, a single-icon-width search that expands on focus at every breakpoint, and the card/list selector share one row; mobile expansion floats above the tabs.
 - `NodeCard`: online/offline, compact/comfortable/spacious, default/light-contrast/glass.
@@ -56,4 +57,4 @@ Reference note: Komari Emerald informs the group-aware summary behavior and comp
 
 - Theme-managed configuration currently supports string-based JSON for metric visibility; parsing remains defensive for compatibility with Komari's configuration schema.
 - A standalone component showcase is not part of the repository; the live home route is the state harness for primitives.
-- Existing light-contrast and glass variants retain their legacy RGBA recipes for backward visual compatibility; new layout surfaces use Naive theme variables and `color-mix()`.
+- Light-contrast variants retain their opaque recipes. Glass variants deliberately use shared Naive theme variables and `color-mix()` so their tint stays separate from default cards while reacting to the active background.

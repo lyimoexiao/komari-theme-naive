@@ -4,6 +4,7 @@ import { NAlert, NEmpty, NInput, NRadioButton, NRadioGroup, NTab, NTabs } from '
 import { computed, defineAsyncComponent, nextTick, onActivated, onDeactivated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
+import { useGlassSurface } from '@/composables/useGlassSurface'
 import { useAppStore } from '@/stores/app'
 import { useNodesStore } from '@/stores/nodes'
 import { isRegionMatch } from '@/utils/regionHelper'
@@ -19,6 +20,7 @@ const NodeGeneralCards = defineAsyncComponent(() => import('@/components/NodeGen
 const NodeList = defineAsyncComponent(() => import('@/components/NodeList.vue'))
 
 const appStore = useAppStore()
+const { glassSurfaceStyle, isGlassEnabled } = useGlassSurface()
 const nodesStore = useNodesStore()
 
 const router = useRouter()
@@ -143,27 +145,6 @@ function handleNodeClick(node: typeof nodesStore.nodes[number]) {
   router.push({ name: 'instance-detail', params: { id: node.uuid } })
 }
 
-// 是否启用背景模糊
-const hasBackgroundBlur = computed(() => {
-  return appStore.backgroundEnabled && appStore.cardBlurRadius > 0
-})
-
-// 计算模糊半径类
-const blurClass = computed(() => {
-  if (!hasBackgroundBlur.value)
-    return ''
-  const radius = appStore.cardBlurRadius
-  if (radius <= 8)
-    return 'glass-8'
-  if (radius <= 12)
-    return 'glass-12'
-  if (radius <= 16)
-    return 'glass-16'
-  if (radius <= 20)
-    return 'glass-20'
-  return `glass-${radius}`
-})
-
 const cardGridStyle = computed(() => ({
   '--card-min-width': `${appStore.cardMinWidth}px`,
   '--card-grid-gap': appStore.cardSize === 'compact' ? '12px' : appStore.cardSize === 'spacious' ? '20px' : '16px',
@@ -202,7 +183,8 @@ const cardGridStyle = computed(() => ({
             class="search-input"
             placeholder="搜索节点名称、地区、系统"
             aria-label="搜索节点名称、地区、系统"
-            :class="[{ 'glass-input-enabled': hasBackgroundBlur }, blurClass]"
+            :class="{ 'glass-surface-enabled glass-input-enabled': isGlassEnabled }"
+            :style="glassSurfaceStyle"
           >
             <template #prefix>
               <div class="i-icon-park-outline-search" />
@@ -346,11 +328,6 @@ const cardGridStyle = computed(() => ({
 
 /* 毛玻璃搜索框样式 */
 .glass-input-enabled {
-  background-color: rgba(255, 255, 255, 0.7) !important;
   border-radius: var(--n-border-radius);
-}
-
-html.dark .glass-input-enabled {
-  background-color: rgba(24, 24, 28, 0.85) !important;
 }
 </style>
